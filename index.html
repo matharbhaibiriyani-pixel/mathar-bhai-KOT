@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Hotel Mathar Bhai — Menu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Karla:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #241A14;
+    --ink-soft: #362820;
+    --ember: #B23A2E;
+    --ember-dark: #8E2E24;
+    --saffron: #E3A83B;
+    --curry-bright: #7C9463;
+    --cream-dim: #E5D6B4;
+    --clay: #7A4B32;
+    --paper: #FBF6E9;
+
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Karla', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--ink);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero {
+    padding: 2.75rem 1.5rem 2rem;
+    text-align: center;
+    background: radial-gradient(ellipse at top, rgba(227,168,59,0.10), transparent 60%), var(--ink);
+    border-bottom: 1px solid var(--clay);
+  }
+
+  .hero__name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(2.1rem, 9vw, 2.6rem);
+    line-height: 1.05;
+    margin: 0;
+    color: var(--paper);
+    letter-spacing: -0.01em;
+  }
+
+  .hero__rule {
+    width: 56px;
+    height: 3px;
+    background: var(--ember);
+    margin: 1.1rem auto 0;
+    border-radius: 2px;
+  }
+
+  .menu-body { flex: 1; padding: 1.5rem 1.25rem 6.5rem; }
+
+  .category-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--curry-bright);
+    margin: 0 0 0.9rem 0.1rem;
+  }
+
+  .item-card {
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 14px;
+    padding: 1.1rem 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .item-card::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--ember);
+  }
+
+  .item-card__text { flex: 1; min-width: 0; cursor: pointer; }
+
+  .item-card__name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.18rem;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .price-stamp {
+    flex-shrink: 0;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    border: 2px solid var(--ember);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-6deg);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--ember-dark);
+    font-size: 0.78rem;
+    text-align: center;
+    line-height: 1.1;
+    background: rgba(178,58,46,0.05);
+    cursor: pointer;
+  }
+
+  .price-stamp--lg { width: 92px; height: 92px; font-size: 1.05rem; border-width: 3px; }
+
+  .stepper-inline {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(178,58,46,0.06);
+    border: 2px solid var(--ember);
+    border-radius: 999px;
+    padding: 0.3rem 0.5rem;
+  }
+
+  .stepper-inline__btn {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ember);
+    color: var(--paper);
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .stepper-inline__btn:active { background: var(--ember-dark); }
+
+  .stepper-inline__qty {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.95rem;
+    min-width: 1.4ch;
+    text-align: center;
+    color: var(--ember-dark);
+  }
+
+  .detail-body { flex: 1; padding: 1.25rem 1.5rem 7rem; }
+
+  .back-btn {
+    background: none; border: none;
+    color: var(--cream-dim);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+  }
+  .back-btn:hover { color: var(--saffron); }
+
+  .detail-card {
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 18px;
+    padding: 2rem 1.5rem 1.75rem;
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+
+  .detail-card__name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 1.9rem;
+    margin: 0.75rem 0 1.5rem;
+    color: var(--ink);
+  }
+
+  .qty-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 1rem; margin-top: 1rem;
+  }
+
+  .qty-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 1.5px solid var(--clay);
+    background: transparent; color: var(--ink);
+    font-family: var(--font-mono); font-size: 1.1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .qty-btn:active { background: var(--cream-dim); }
+
+  .qty-count {
+    font-family: var(--font-mono); font-weight: 700; font-size: 1.2rem;
+    min-width: 2ch; text-align: center;
+  }
+
+  .add-btn {
+    display: block; width: 100%; margin-top: 1.75rem;
+    padding: 0.95rem; border: none; border-radius: 12px;
+    background: var(--ember); color: var(--paper);
+    font-family: var(--font-body); font-weight: 700; font-size: 1rem;
+    cursor: pointer;
+  }
+  .add-btn:hover { background: var(--ember-dark); }
+  .add-btn:disabled { opacity: 0.6; cursor: default; }
+
+  .cart-body { flex: 1; padding: 1.25rem 1.5rem 7rem; }
+
+  .cart-title {
+    font-family: var(--font-display); font-weight: 900; font-size: 1.6rem;
+    color: var(--paper); margin: 0.5rem 0 1.25rem;
+  }
+
+  .chit { background: var(--paper); color: var(--ink); border-radius: 14px; padding: 1.25rem 1.4rem; }
+
+  .chit-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.65rem 0; border-bottom: 1px dashed var(--clay);
+    font-family: var(--font-mono); font-size: 0.9rem;
+  }
+  .chit-row:last-of-type { border-bottom: none; }
+  .chit-row__name { font-family: var(--font-body); font-weight: 700; font-size: 0.95rem; }
+
+  .chit-total {
+    display: flex; justify-content: space-between;
+    padding-top: 1rem; margin-top: 0.4rem;
+    border-top: 2px solid var(--ink);
+    font-family: var(--font-mono); font-weight: 700; font-size: 1.1rem;
+  }
+
+  .empty-cart { text-align: center; color: var(--cream-dim); padding: 3rem 1rem; font-size: 0.9rem; }
+  .empty-cart__icon { font-size: 2.2rem; margin-bottom: 0.75rem; opacity: 0.6; }
+
+  .bottom-bar {
+    position: sticky; bottom: 0; left: 0; right: 0;
+    background: var(--ink-soft); border-top: 1px solid var(--clay);
+    display: flex; padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
+    gap: 0.5rem; max-width: 480px; margin: 0 auto; width: 100%;
+  }
+
+  .nav-btn {
+    flex: 1; background: none; border: none; color: var(--cream-dim);
+    font-family: var(--font-body); font-size: 0.78rem; font-weight: 500;
+    padding: 0.5rem 0.25rem; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
+    border-radius: 10px; position: relative;
+  }
+  .nav-btn__icon { font-size: 1.15rem; }
+  .nav-btn.active { color: var(--saffron); }
+
+  .cart-badge {
+    position: absolute; top: 0.15rem; right: 22%;
+    background: var(--ember); color: var(--paper);
+    font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+    width: 16px; height: 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .view { display: none; }
+  .view.visible { display: block; }
+
+  .loading-overlay {
+    position: fixed; inset: 0; background: rgba(36,26,20,0.85);
+    display: none; align-items: center; justify-content: center;
+    z-index: 50; font-family: var(--font-mono); color: var(--saffron);
+  }
+  .loading-overlay.visible { display: flex; }
+
+  .toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    background: var(--ember-dark); color: var(--paper);
+    padding: 0.7rem 1.2rem; border-radius: 999px;
+    font-size: 0.85rem; z-index: 60; display: none;
+    max-width: 90%; text-align: center;
+  }
+  .toast.visible { display: block; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <div class="view visible" id="view-menu">
+    <div class="hero">
+      <h1 class="hero__name">Hotel Mathar Bhai</h1>
+      <div class="hero__rule"></div>
+    </div>
+    <div class="menu-body"><div id="menu-list"></div></div>
+  </div>
+
+  <div class="view" id="view-detail">
+    <div class="detail-body">
+      <button class="back-btn" onclick="showView('menu')">&larr; Back to menu</button>
+      <div class="detail-card" id="detail-card"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-cart">
+    <div class="cart-body">
+      <h2 class="cart-title">Your order</h2>
+      <div id="cart-contents"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-confirm">
+    <div class="cart-body">
+      <div class="detail-card" style="margin-top: 2rem;" id="confirm-card"></div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="nav-btn active" id="nav-menu" onclick="showView('menu')">
+      <span class="nav-btn__icon">&#127860;</span>Menu
+    </button>
+    <button class="nav-btn" id="nav-cart" onclick="showView('cart')" style="position:relative;">
+      <span class="nav-btn__icon">&#128722;</span>Cart
+      <span class="cart-badge" id="cart-badge" style="display:none;">0</span>
+    </button>
+  </div>
+
+</div>
+
+<div class="loading-overlay" id="loading-overlay">Placing your order…</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDiB9xbeRHC91Pyvw1pr1odagfHck01dOA",
+    authDomain: "hotel-mathar-bhai-orders.firebaseapp.com",
+    projectId: "hotel-mathar-bhai-orders",
+    storageBucket: "hotel-mathar-bhai-orders.firebasestorage.app",
+    messagingSenderId: "106949196895",
+    appId: "1:106949196895:web:b320878772de39eab8afea"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window.__db = db;
+  window.__collection = collection;
+  window.__addDoc = addDoc;
+  window.__serverTimestamp = serverTimestamp;
+  window.__firebaseReady = true;
+</script>
+
+<script>
+  // ---------- Menu data ----------
+  const CATEGORIES = ["பிரியாணி","சைனீஸ்","புரோட்டா","சப்பாத்தி","இடியாப்பம்","பீஃப்","சிக்கன்","குடல் & சூப்","முட்டை"];
+
+  const MENU = [
+    { id: "chicken-biriyani", category: "பிரியாணி", name: "சிக்கன் பிரியாணி", price: 130 },
+    { id: "beef-biriyani", category: "பிரியாணி", name: "பீஃப் பிரியாணி", price: 150 },
+    { id: "empty-biriyani", category: "பிரியாணி", name: "MT பிரியாணி", price: 110 },
+    { id: "chicken-fried-rice", category: "சைனீஸ்", name: "சிக்கன் ஃப்ரைடு ரைஸ்", price: 130 },
+    { id: "egg-fried-rice", category: "சைனீஸ்", name: "Egg ஃப்ரைடு ரைஸ்", price: 110 },
+    { id: "veg-fried-rice", category: "சைனீஸ்", name: "Veg ஃப்ரைடு ரைஸ்", price: 110 },
+    { id: "beef-fried-rice", category: "சைனீஸ்", name: "பீஃப் ஃப்ரைடு ரைஸ்", price: 150 },
+    { id: "chicken-noodles", category: "சைனீஸ்", name: "சிக்கன் நூடுல்ஸ்", price: 130 },
+    { id: "beef-noodles", category: "சைனீஸ்", name: "பீஃப் நூடுல்ஸ்", price: 150 },
+    { id: "egg-noodles", category: "சைனீஸ்", name: "Egg நூடுல்ஸ்", price: 110 },
+    { id: "veg-noodles", category: "சைனீஸ்", name: "Veg நூடுல்ஸ்", price: 110 },
+    { id: "porotta", category: "புரோட்டா", name: "புரோட்டா", price: 15 },
+    { id: "egg-kothu-porotta", category: "புரோட்டா", name: "Egg கொத்து புரோட்டா", price: 120 },
+    { id: "chicken-kothu-porotta", category: "புரோட்டா", name: "சிக்கன் கொத்து புரோட்டா", price: 160 },
+    { id: "beef-kothu-porotta", category: "புரோட்டா", name: "பீஃப் கொத்து புரோட்டா", price: 160 },
+    { id: "chapati", category: "சப்பாத்தி", name: "சப்பாத்தி", price: 15 },
+    { id: "egg-kothu-chapati", category: "சப்பாத்தி", name: "Egg கொத்து சப்பாத்தி", price: 120 },
+    { id: "chicken-kothu-chapati", category: "சப்பாத்தி", name: "சிக்கன் கொத்து சப்பாத்தி", price: 160 },
+    { id: "beef-kothu-chapati", category: "சப்பாத்தி", name: "பீஃப் கொத்து சப்பாத்தி", price: 160 },
+    { id: "idiyappam", category: "இடியாப்பம்", name: "இடியாப்பம்", price: 15 },
+    { id: "egg-kothu-idiyappam", category: "இடியாப்பம்", name: "Egg கொத்து இடியாப்பம்", price: 130 },
+    { id: "chicken-kothu-idiyappam", category: "இடியாப்பம்", name: "சிக்கன் கொத்து இடியாப்பம்", price: 170 },
+    { id: "beef-pakora", category: "பீஃப்", name: "பீஃப் பக்கோடா (100g)", price: 90 },
+    { id: "beef-roast", category: "பீஃப்", name: "பீஃப் ரோஸ்ட்", price: 120 },
+    { id: "beef-gravy", category: "பீஃப்", name: "பீஃப் கிரேவி", price: 150 },
+    { id: "beef-pepper-roast", category: "பீஃப்", name: "பீஃப் Pepper ரோஸ்ட்", price: 140 },
+    { id: "beef-pepper-gravy", category: "பீஃப்", name: "பீஃப் Pepper கிரேவி", price: 170 },
+    { id: "chicken-65", category: "சிக்கன்", name: "சிக்கன் 65 (100g)", price: 80 },
+    { id: "chicken-chilli-gravy", category: "சிக்கன்", name: "சிக்கன் சில்லி கிரேவி", price: 110 },
+    { id: "chilli-chicken", category: "சிக்கன்", name: "சில்லி சிக்கன்", price: 140 },
+    { id: "pepper-chicken", category: "சிக்கன்", name: "Pepper சிக்கன்", price: 140 },
+    { id: "kudal-fry", category: "குடல் & சூப்", name: "குடல் ஃப்ரை", price: 80 },
+    { id: "mattu-vaal-soup", category: "குடல் & சூப்", name: "மாட்டு வால் சூப்", price: 20 },
+    { id: "omelette", category: "முட்டை", name: "ஆம்லெட்", price: 20 },
+    { id: "full-boil", category: "முட்டை", name: "ஃபுல் பாயில்", price: 15 },
+    { id: "half-boil", category: "முட்டை", name: "ஆஃப் பாயில்", price: 15 },
+    { id: "kalakki", category: "முட்டை", name: "கலக்கி", price: 20 },
+    { id: "mutta-poriyal", category: "முட்டை", name: "முட்டை பொரியல்", price: 30 }
+  ];
+
+  function formatPrice(n) { return "\u20B9" + n; }
+
+  // ---------- State ----------
+  let currentDetailId = null;
+  const cart = {};
+
+  // ---------- Rendering ----------
+  function renderMenuList() {
+    const container = document.getElementById("menu-list");
+    container.innerHTML = "";
+
+    CATEGORIES.forEach(category => {
+      const items = MENU.filter(i => i.category === category);
+      if (items.length === 0) return;
+
+      const heading = document.createElement("p");
+      heading.className = "category-label";
+      heading.textContent = category;
+      if (category !== CATEGORIES[0]) heading.style.marginTop = "1.75rem";
+      container.appendChild(heading);
+
+      const group = document.createElement("div");
+      group.style.display = "flex";
+      group.style.flexDirection = "column";
+      group.style.gap = "0.65rem";
+
+      items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "item-card";
+        card.innerHTML = `
+          <div class="item-card__text">
+            <p class="item-card__name">${item.name}</p>
+          </div>
+          <div class="qty-control" style="flex-shrink:0;"></div>
+        `;
+        const textEl = card.querySelector(".item-card__text");
+        textEl.onclick = () => openDetail(item.id);
+        renderQtyControl(card.querySelector(".qty-control"), item);
+        group.appendChild(card);
+      });
+
+      container.appendChild(group);
+    });
+  }
+
+  function renderQtyControl(el, item) {
+    const qty = cart[item.id] || 0;
+    if (qty === 0) {
+      el.innerHTML = `<div class="price-stamp" role="button" tabindex="0">${formatPrice(item.price)}</div>`;
+      el.onclick = () => setQty(item.id, 1);
+    } else {
+      el.innerHTML = `
+        <div class="stepper-inline">
+          <button class="stepper-inline__btn">&minus;</button>
+          <span class="stepper-inline__qty">${qty}</span>
+          <button class="stepper-inline__btn">+</button>
+        </div>
+      `;
+      const [minusBtn, plusBtn] = el.querySelectorAll(".stepper-inline__btn");
+      minusBtn.onclick = (e) => { e.stopPropagation(); setQty(item.id, qty - 1); };
+      plusBtn.onclick = (e) => { e.stopPropagation(); setQty(item.id, qty + 1); };
+    }
+  }
+
+  function openDetail(itemId) {
+    currentDetailId = itemId;
+    renderDetail();
+    showView("detail");
+  }
+
+  function renderDetail() {
+    const item = MENU.find(i => i.id === currentDetailId);
+    if (!item) return;
+    const qty = cart[item.id] || 0;
+    const card = document.getElementById("detail-card");
+    card.innerHTML = `
+      <div class="price-stamp price-stamp--lg" style="margin: 0 auto;">${formatPrice(item.price)}</div>
+      <h2 class="detail-card__name">${item.name}</h2>
+      <div class="qty-row">
+        <button class="qty-btn" onclick="setQty('${item.id}', ${qty - 1})">&minus;</button>
+        <span class="qty-count">${qty}</span>
+        <button class="qty-btn" onclick="setQty('${item.id}', ${qty + 1})">+</button>
+      </div>
+      <button class="add-btn" onclick="setQty('${item.id}', ${Math.max(1, qty)}); showView('menu')">
+        ${qty === 0 ? "Add to order" : "Update quantity"} &middot; ${formatPrice(item.price * Math.max(1, qty))}
+      </button>
+    `;
+  }
+
+  function setQty(itemId, qty) {
+    qty = Math.max(0, qty);
+    if (qty === 0) delete cart[itemId]; else cart[itemId] = qty;
+    updateCartBadge();
+    renderMenuList();
+    if (document.getElementById("view-detail").classList.contains("visible") && currentDetailId === itemId) {
+      renderDetail();
+    }
+    renderCart();
+  }
+
+  function updateCartBadge() {
+    const total = Object.values(cart).reduce((a, b) => a + b, 0);
+    const badge = document.getElementById("cart-badge");
+    if (total > 0) { badge.style.display = "flex"; badge.textContent = total; }
+    else { badge.style.display = "none"; }
+  }
+
+  function renderCart() {
+    const container = document.getElementById("cart-contents");
+    const entries = Object.entries(cart).filter(([, qty]) => qty > 0);
+
+    if (entries.length === 0) {
+      container.innerHTML = `
+        <div class="empty-cart">
+          <div class="empty-cart__icon">&#128722;</div>
+          <p>Nothing in your order yet.<br>Tap a dish on the menu to add it.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let total = 0;
+    const rows = entries.map(([itemId, qty]) => {
+      const item = MENU.find(i => i.id === itemId);
+      const lineTotal = item.price * qty;
+      total += lineTotal;
+      return `<div class="chit-row"><span class="chit-row__name">${qty} &times; ${item.name}</span><span>${formatPrice(lineTotal)}</span></div>`;
+    }).join("");
+
+    container.innerHTML = `
+      <div class="chit">
+        ${rows}
+        <div class="chit-total"><span>Total</span><span>${formatPrice(total)}</span></div>
+      </div>
+      <button class="add-btn" style="margin-top: 1rem;" id="place-order-btn" onclick="placeOrder()">Place order</button>
+    `;
+  }
+
+  async function placeOrder() {
+    const entries = Object.entries(cart).filter(([, qty]) => qty > 0);
+    if (entries.length === 0) return;
+
+    if (!window.__firebaseReady) {
+      showToast("Connection not ready yet — please try again in a moment.");
+      return;
+    }
+
+    const btn = document.getElementById("place-order-btn");
+    if (btn) { btn.disabled = true; btn.textContent = "Placing order..."; }
+    document.getElementById("loading-overlay").classList.add("visible");
+
+    let total = 0;
+    const lines = entries.map(([itemId, qty]) => {
+      const item = MENU.find(i => i.id === itemId);
+      const lineTotal = item.price * qty;
+      total += lineTotal;
+      return { name: item.name, qty, price: item.price, lineTotal };
+    });
+
+    const token = Math.floor(100 + Math.random() * 900);
+
+    try {
+      await window.__addDoc(window.__collection(window.__db, "orders"), {
+        token,
+        items: lines,
+        total,
+        status: "new",
+        placedAt: window.__serverTimestamp()
+      });
+
+      renderConfirmation(token, lines, total);
+      Object.keys(cart).forEach(k => delete cart[k]);
+      updateCartBadge();
+      renderMenuList();
+      showView("confirm");
+    } catch (err) {
+      console.error(err);
+      showToast("Could not place order — check your connection and try again.");
+    } finally {
+      document.getElementById("loading-overlay").classList.remove("visible");
+      if (btn) { btn.disabled = false; btn.textContent = "Place order"; }
+    }
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.classList.add("visible");
+    setTimeout(() => toast.classList.remove("visible"), 3500);
+  }
+
+  function startNewOrder() {
+    currentDetailId = null;
+    renderMenuList();
+    showView("menu");
+  }
+
+  function renderConfirmation(token, lines, total) {
+    const card = document.getElementById("confirm-card");
+    const rows = lines.map(l => `<div class="chit-row"><span class="chit-row__name">${l.qty} &times; ${l.name}</span><span>${formatPrice(l.lineTotal)}</span></div>`).join("");
+    card.innerHTML = `
+      <div class="price-stamp price-stamp--lg" style="margin: 0 auto;">#${token}</div>
+      <h2 class="detail-card__name">Order placed</h2>
+      <p style="color:var(--clay); font-size:0.9rem; margin-top:-1rem;">Show this token number at the counter.</p>
+      <div class="chit" style="margin-top: 1.5rem; text-align: left;">
+        ${rows}
+        <div class="chit-total"><span>Total</span><span>${formatPrice(total)}</span></div>
+      </div>
+      <button class="add-btn" style="margin-top: 1.5rem;" onclick="startNewOrder()">Start a new order</button>
+    `;
+  }
+
+  function showView(name) {
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("visible"));
+    document.getElementById("view-" + name).classList.add("visible");
+    document.getElementById("nav-menu").classList.toggle("active", name === "menu");
+    document.getElementById("nav-cart").classList.toggle("active", name === "cart");
+    window.scrollTo(0, 0);
+  }
+
+  window.setQty = setQty;
+  window.showView = showView;
+  window.placeOrder = placeOrder;
+  window.startNewOrder = startNewOrder;
+
+  renderMenuList();
+  renderCart();
+</script>
+
+</body>
+</html>

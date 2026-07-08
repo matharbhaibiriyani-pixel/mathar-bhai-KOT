@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Mathar Bhai — KOT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Karla:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #241A14;
+    --ember: #B23A2E;
+    --ember-dark: #8E2E24;
+    --saffron: #E3A83B;
+    --curry: #4F5D3A;
+    --clay: #7A4B32;
+    --paper: #FBF6E9;
+
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Karla', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--ink); color: var(--paper);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 1.75rem;
+    border-bottom: 1px solid var(--clay);
+    background: #1D140F;
+    position: sticky; top: 0; z-index: 5;
+  }
+
+  .topbar__title { font-family: var(--font-display); font-weight: 900; font-size: 1.5rem; margin: 0; }
+  .topbar__subtitle {
+    font-family: var(--font-mono); font-size: 0.72rem;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--saffron); margin: 0.15rem 0 0;
+  }
+
+  .topbar__right { display: flex; align-items: center; gap: 0.9rem; }
+
+  .status-pill {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: var(--font-mono); font-size: 0.78rem; color: var(--paper);
+    background: rgba(227,168,59,0.08);
+    border: 1px solid var(--clay);
+    padding: 0.4rem 0.85rem; border-radius: 999px;
+  }
+
+  .status-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--saffron);
+    animation: pulse 1.8s infinite;
+  }
+
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(227,168,59, 0.5); }
+    70%  { box-shadow: 0 0 0 9px rgba(227,168,59, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(227,168,59, 0); }
+  }
+
+  .logout-btn {
+    background: none; border: 1px solid var(--clay); color: var(--paper);
+    font-family: var(--font-body); font-size: 0.8rem;
+    padding: 0.45rem 0.9rem; border-radius: 999px; cursor: pointer;
+  }
+  .logout-btn:hover { border-color: var(--ember); color: var(--saffron); }
+
+  .board {
+    padding: 1.5rem; display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.1rem; max-width: 1400px; margin: 0 auto;
+  }
+
+  .ticket {
+    background: var(--paper); color: var(--ink);
+    border-radius: 16px; padding: 1.4rem 1.4rem 1.2rem;
+    position: relative; border: 2px solid transparent;
+    animation: dropIn 0.35s ease;
+  }
+  .ticket--new { border-color: var(--ember); box-shadow: 0 0 0 4px rgba(178,58,46,0.12); }
+
+  @keyframes dropIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .ticket__header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.9rem; padding-bottom: 0.9rem;
+    border-bottom: 1px dashed var(--clay);
+  }
+
+  .ticket__token {
+    font-family: var(--font-mono); font-weight: 700; font-size: 1.3rem;
+    color: var(--ember-dark); background: rgba(178,58,46,0.08);
+    border: 2px solid var(--ember); border-radius: 10px; padding: 0.25rem 0.65rem;
+  }
+
+  .ticket__time { font-family: var(--font-mono); font-size: 0.75rem; color: var(--clay); text-align: right; }
+  .ticket__time strong { display: block; color: var(--ink); font-size: 0.85rem; }
+
+  .ticket__items { display: flex; flex-direction: column; gap: 0.45rem; margin-bottom: 1.1rem; }
+  .ticket__item { display: flex; justify-content: space-between; font-size: 0.95rem; line-height: 1.4; }
+  .ticket__item-qty { font-family: var(--font-mono); font-weight: 700; color: var(--ember-dark); margin-right: 0.5rem; }
+
+  .ticket__total {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono); font-weight: 700; font-size: 1rem;
+    padding-top: 0.6rem; border-top: 2px solid var(--ink); margin-bottom: 1.1rem;
+  }
+
+  .done-btn {
+    width: 100%; padding: 0.7rem; border: none; border-radius: 10px;
+    background: var(--curry); color: var(--paper);
+    font-family: var(--font-body); font-weight: 700; font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .done-btn:hover { background: #3d4a2c; }
+
+  .ticket--done { opacity: 0.45; }
+  .ticket--done .done-btn { background: var(--clay); cursor: default; }
+
+  .empty-state {
+    text-align: center; padding: 5rem 1rem; color: var(--clay);
+    font-family: var(--font-mono); font-size: 0.9rem;
+  }
+
+  .auth-gate {
+    position: fixed; inset: 0; background: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; font-family: var(--font-mono); color: var(--saffron);
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="auth-gate" id="auth-gate">Checking login…</div>
+
+<div class="topbar">
+  <div>
+    <p class="topbar__title">Hotel Mathar Bhai</p>
+    <p class="topbar__subtitle">Kitchen Order Tickets</p>
+  </div>
+  <div class="topbar__right">
+    <div class="status-pill">
+      <span class="status-dot"></span>
+      <span id="order-count">Loading…</span>
+    </div>
+    <button class="logout-btn" id="logout-btn">Log out</button>
+  </div>
+</div>
+
+<div class="board" id="board"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDiB9xbeRHC91Pyvw1pr1odagfHck01dOA",
+    authDomain: "hotel-mathar-bhai-orders.firebaseapp.com",
+    projectId: "hotel-mathar-bhai-orders",
+    storageBucket: "hotel-mathar-bhai-orders.firebasestorage.app",
+    messagingSenderId: "106949196895",
+    appId: "1:106949196895:web:b320878772de39eab8afea"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let unsubscribeOrders = null;
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      // not logged in — bounce to login page
+      window.location.href = "login.html";
+      return;
+    }
+    // logged in — reveal the board and start listening for orders
+    document.getElementById("auth-gate").style.display = "none";
+    startOrdersListener();
+  });
+
+  document.getElementById("logout-btn").addEventListener("click", async () => {
+    if (unsubscribeOrders) unsubscribeOrders();
+    await signOut(auth);
+    window.location.href = "login.html";
+  });
+
+  function startOrdersListener() {
+    const ordersQuery = query(collection(db, "orders"), orderBy("placedAt", "desc"));
+    unsubscribeOrders = onSnapshot(ordersQuery, (snapshot) => {
+      const orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderBoard(orders);
+    }, (err) => {
+      console.error(err);
+      document.getElementById("order-count").textContent = "Connection error";
+    });
+  }
+
+  window.markDone = async function(id) {
+    try {
+      await updateDoc(doc(db, "orders", id), { status: "done" });
+    } catch (err) {
+      console.error(err);
+      alert("Could not update this order — check your connection and try again.");
+    }
+  };
+
+  function renderBoard(orders) {
+    const board = document.getElementById("board");
+    board.innerHTML = "";
+
+    if (orders.length === 0) {
+      board.innerHTML = `<div class="empty-state">No orders yet. New tickets will appear here automatically.</div>`;
+      document.getElementById("order-count").textContent = "0 active orders";
+      return;
+    }
+
+    const sorted = [...orders].sort((a, b) => {
+      if (a.status === b.status) return 0;
+      return a.status === "done" ? 1 : -1;
+    });
+
+    sorted.forEach(order => {
+      const ticket = document.createElement("div");
+      ticket.className = "ticket" + (order.status === "new" ? " ticket--new" : "") + (order.status === "done" ? " ticket--done" : "");
+
+      const itemRows = (order.items || []).map(it => `
+        <div class="ticket__item"><span><span class="ticket__item-qty">${it.qty}×</span>${it.name}</span></div>
+      `).join("");
+
+      const time = order.placedAt && order.placedAt.toDate
+        ? order.placedAt.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        : "just now";
+
+      ticket.innerHTML = `
+        <div class="ticket__header">
+          <span class="ticket__token">#${order.token}</span>
+          <span class="ticket__time"><strong>${time}</strong>received</span>
+        </div>
+        <div class="ticket__items">${itemRows}</div>
+        <div class="ticket__total"><span>Total</span><span>₹${order.total}</span></div>
+        <button class="done-btn" ${order.status === "done" ? "disabled" : ""} onclick="markDone('${order.id}')">
+          ${order.status === "done" ? "Completed" : "Mark as done"}
+        </button>
+      `;
+      board.appendChild(ticket);
+    });
+
+    const activeCount = orders.filter(o => o.status === "new").length;
+    document.getElementById("order-count").textContent = `${activeCount} active order${activeCount === 1 ? "" : "s"}`;
+  }
+</script>
+
+</body>
+</html>
