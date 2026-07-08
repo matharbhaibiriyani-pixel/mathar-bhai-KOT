@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Mathar Bhai — POS Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Karla:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #241A14; --ember: #B23A2E; --ember-dark: #8E2E24;
+    --saffron: #E3A83B; --clay: #7A4B32; --paper: #FBF6E9;
+    --font-display: 'Fraunces', serif; --font-body: 'Karla', sans-serif; --font-mono: 'Space Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--ink); color: var(--paper);
+    font-family: var(--font-body); -webkit-font-smoothing: antialiased;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+  }
+  .login-card { width: 100%; max-width: 400px; background: var(--paper); color: var(--ink); border-radius: 20px; padding: 2.5rem 2rem 2rem; text-align: center; }
+  .login-card__name { font-family: var(--font-display); font-weight: 900; font-size: 1.8rem; margin: 0 0 0.3rem; }
+  .login-card__subtitle { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ember-dark); margin: 0 0 2rem; }
+  .field { text-align: left; margin-bottom: 1.1rem; }
+  .field label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--clay); margin-bottom: 0.35rem; }
+  .field input { width: 100%; padding: 0.75rem 0.9rem; border-radius: 10px; border: 1.5px solid #DCCBA8; background: #fff; color: var(--ink); font-family: var(--font-body); font-size: 0.95rem; }
+  .field input:focus { outline: none; border-color: var(--ember); }
+  .login-btn { width: 100%; padding: 0.85rem; margin-top: 0.5rem; border: none; border-radius: 10px; background: var(--ember); color: var(--paper); font-family: var(--font-body); font-weight: 700; font-size: 0.98rem; cursor: pointer; }
+  .login-btn:hover { background: var(--ember-dark); }
+  .login-btn:disabled { opacity: 0.6; cursor: default; }
+  .error-msg { color: var(--ember-dark); font-size: 0.82rem; margin: 0.9rem 0 0; min-height: 1.2em; }
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <p class="login-card__name">Hotel Mathar Bhai</p>
+  <p class="login-card__subtitle">POS Staff Login</p>
+  <form id="login-form">
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="kitchen@matharbhai.com" required>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="••••••••" required>
+    </div>
+    <button type="submit" class="login-btn" id="login-btn">Log In</button>
+    <p class="error-msg" id="error-msg"></p>
+  </form>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDiB9xbeRHC91Pyvw1pr1odagfHck01dOA",
+    authDomain: "hotel-mathar-bhai-orders.firebaseapp.com",
+    projectId: "hotel-mathar-bhai-orders",
+    storageBucket: "hotel-mathar-bhai-orders.firebasestorage.app",
+    messagingSenderId: "106949196895",
+    appId: "1:106949196895:web:b320878772de39eab8afea"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) window.location.href = "pos.html";
+  });
+
+  const form = document.getElementById("login-form");
+  const btn = document.getElementById("login-btn");
+  const errorMsg = document.getElementById("error-msg");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorMsg.textContent = "";
+    btn.disabled = true;
+    btn.textContent = "Logging in...";
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      window.location.href = "pos.html";
+    } catch (err) {
+      let msg = "Login failed. Please try again.";
+      if (["auth/invalid-credential","auth/wrong-password","auth/user-not-found"].includes(err.code)) msg = "Incorrect email or password.";
+      else if (err.code === "auth/invalid-email") msg = "That doesn't look like a valid email.";
+      else if (err.code === "auth/too-many-requests") msg = "Too many attempts — please wait and try again.";
+      errorMsg.textContent = msg;
+      btn.disabled = false;
+      btn.textContent = "Log In";
+    }
+  });
+</script>
+
+</body>
+</html>
