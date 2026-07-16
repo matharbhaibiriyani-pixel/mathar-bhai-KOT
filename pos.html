@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Mathar Bhai — POS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Karla:wght@400;500;700&family=Space+Mono:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #241A14; --ember: #B23A2E; --ember-dark: #8E2E24;
+    --saffron: #E3A83B; --curry: #4F5D3A; --curry-bright: #7C9463;
+    --clay: #7A4B32; --paper: #FBF6E9; --paper-dim: #F0E8D5; --cream-dim: #E5D6B4;
+    --font-display: 'Fraunces', serif; --font-body: 'Karla', sans-serif; --font-mono: 'Space Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--ink); color: var(--paper); font-family: var(--font-body); -webkit-font-smoothing: antialiased; height: 100%; overflow: hidden; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.5rem; border-bottom: 1px solid var(--clay); background: #1D140F;
+    position: sticky; top: 0; z-index: 5;
+  }
+  .topbar__title { font-family: var(--font-display); font-weight: 900; font-size: 1.3rem; margin: 0; }
+  .topbar__subtitle { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--saffron); margin: 0.1rem 0 0; }
+  .topbar__right { display: flex; align-items: center; gap: 0.6rem; }
+
+  .pill-btn {
+    background: none; border: 1px solid var(--clay); color: var(--paper);
+    font-family: var(--font-body); font-size: 0.8rem;
+    padding: 0.45rem 0.9rem; border-radius: 999px; cursor: pointer;
+  }
+  .pill-btn:hover { border-color: var(--saffron); color: var(--saffron); }
+  .pill-btn--active { border-color: var(--saffron); color: var(--saffron); background: rgba(227,168,59,0.08); }
+
+  .layout { display: grid; grid-template-columns: 1fr 260px 380px; height: calc(100vh - 66px); overflow: hidden; }
+  @media (max-width: 1150px) { .layout { grid-template-columns: 1fr 380px; } .custom-panel { grid-column: 1 / -1; height: auto; border-left: none; border-top: 1px solid var(--clay); } }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; height: auto; overflow: visible; } .custom-panel { grid-column: auto; } }
+
+  .custom-panel {
+    background: #201710; border-left: 1px solid var(--clay);
+    padding: 1.25rem; height: 100%; overflow-y: auto;
+  }
+  .custom-panel__title { font-family: var(--font-display); font-weight: 900; font-size: 1.1rem; margin: 0 0 0.3rem; }
+  .custom-panel__hint { font-family: var(--font-mono); font-size: 0.72rem; color: var(--clay); margin: 0 0 1.2rem; line-height: 1.5; }
+
+  .custom-panel .modal-field { margin-bottom: 0.9rem; }
+  .custom-panel .modal-field label { color: var(--cream-dim); }
+
+  .custom-panel__add-btn {
+    width: 100%; padding: 0.75rem; border-radius: 10px; border: none;
+    background: var(--saffron); color: var(--ink); font-family: var(--font-body);
+    font-weight: 700; font-size: 0.92rem; cursor: pointer; margin-top: 0.3rem;
+  }
+  .custom-panel__add-btn:hover { background: #eab84f; }
+
+  .menu-panel { padding: 1.25rem; overflow-y: auto; height: 100%; }
+  .order-type-row { display: flex; gap: 0.6rem; margin-bottom: 1.25rem; }
+  .order-type-btn {
+    flex: 1; padding: 0.8rem; border-radius: 12px; border: 2px solid var(--clay);
+    background: var(--ink); color: var(--paper); font-family: var(--font-body); font-weight: 700;
+    font-size: 0.95rem; cursor: pointer;
+  }
+  .order-type-btn--active { border-color: var(--ember); background: rgba(178,58,46,0.15); color: var(--saffron); }
+
+  .custom-item-btn {
+    flex-shrink: 0; padding: 0.8rem 1.1rem; border-radius: 12px; border: 2px dashed var(--saffron);
+    background: transparent; color: var(--saffron); font-family: var(--font-body); font-weight: 700;
+    font-size: 0.9rem; cursor: pointer; white-space: nowrap;
+  }
+  .custom-item-btn:hover { background: rgba(227,168,59,0.1); }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    display: none; align-items: center; justify-content: center; z-index: 80; padding: 1.5rem;
+  }
+  .modal-overlay.visible { display: flex; }
+  .modal-card {
+    background: var(--paper); color: var(--ink); border-radius: 16px; padding: 1.75rem;
+    width: 100%; max-width: 360px;
+  }
+  .modal-card__title { font-family: var(--font-display); font-weight: 900; font-size: 1.3rem; margin: 0 0 1.2rem; }
+  .modal-field { margin-bottom: 1rem; text-align: left; }
+  .modal-field label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--clay); margin-bottom: 0.3rem; }
+  .modal-field input {
+    width: 100%; padding: 0.65rem 0.8rem; border-radius: 8px; border: 1.5px solid #DCCBA8;
+    background: #fff; color: var(--ink); font-family: var(--font-body); font-size: 0.95rem;
+  }
+  .modal-field input:focus { outline: none; border-color: var(--ember); }
+  .modal-actions { display: flex; gap: 0.6rem; margin-top: 1.3rem; }
+  .modal-actions button { flex: 1; padding: 0.75rem; border-radius: 10px; font-weight: 700; cursor: pointer; font-family: var(--font-body); }
+  .modal-cancel-btn { background: transparent; border: 1.5px solid var(--clay); color: var(--ink); }
+  .modal-add-btn { background: var(--ember); border: none; color: var(--paper); }
+  .modal-add-btn:hover { background: var(--ember-dark); }
+
+  .held-badge {
+    position: absolute; top: -6px; right: -6px;
+    background: var(--ember); color: var(--paper);
+    font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700;
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .held-bill-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 0.6rem;
+    background: #fff; border-radius: 10px; padding: 0.75rem 0.9rem; margin-bottom: 0.6rem;
+  }
+  .held-bill-row__label { font-size: 0.88rem; font-weight: 700; }
+  .held-bill-row__actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+  .held-bill-row__actions button { padding: 0.4rem 0.7rem; border-radius: 8px; border: none; font-size: 0.78rem; cursor: pointer; font-weight: 700; }
+  .held-resume-btn { background: var(--curry); color: var(--paper); }
+  .held-delete-btn { background: rgba(178,58,46,0.12); color: var(--ember-dark); }
+  .held-empty { text-align: center; color: var(--clay); font-size: 0.85rem; padding: 1rem; }
+
+  .category-label {
+    font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--curry-bright); margin: 1.2rem 0 0.7rem 0.1rem;
+  }
+  .category-label:first-of-type { margin-top: 0; }
+
+  .category-tabs {
+    display: flex; gap: 0.5rem; overflow-x: auto; white-space: nowrap;
+    padding-bottom: 0.6rem; margin-bottom: 1rem; border-bottom: 1px solid var(--clay);
+    scrollbar-width: thin;
+  }
+  .category-tab {
+    flex-shrink: 0; padding: 0.55rem 1rem; border-radius: 999px; border: 1.5px solid var(--clay);
+    background: transparent; color: var(--cream-dim); font-family: var(--font-body); font-size: 0.85rem;
+    font-weight: 600; cursor: pointer;
+  }
+  .category-tab:hover { border-color: var(--saffron); color: var(--saffron); }
+  .category-tab--active { border-color: var(--ember); background: rgba(178,58,46,0.18); color: var(--saffron); }
+
+  .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.6rem; }
+
+  .item-tile {
+    background: var(--paper); color: var(--ink); border-radius: 12px; padding: 0.8rem 0.9rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  }
+  .item-tile__name { font-family: 'Noto Sans Tamil', var(--font-body); font-weight: 700; font-size: 0.92rem; line-height: 1.25; }
+  .item-tile__price { font-family: var(--font-mono); font-size: 0.78rem; color: var(--clay); }
+
+  .stepper { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
+  .stepper-btn {
+    width: 26px; height: 26px; border-radius: 50%; border: none; background: var(--ember);
+    color: var(--paper); font-family: var(--font-mono); font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stepper-btn:active { background: var(--ember-dark); }
+  .stepper-qty { font-family: var(--font-mono); font-weight: 700; min-width: 1.4ch; text-align: center; }
+  .add-tile-btn {
+    width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--ember); background: transparent;
+    color: var(--ember-dark); font-size: 1.1rem; cursor: pointer; flex-shrink: 0;
+  }
+
+  .bill-panel {
+    background: #1D140F; border-left: 1px solid var(--clay);
+    padding: 1.25rem; display: flex; flex-direction: column;
+    height: 100%; overflow: hidden;
+  }
+  .bill-panel__title { font-family: var(--font-display); font-weight: 900; font-size: 1.3rem; margin: 0 0 1rem; flex-shrink: 0; }
+
+  .bill-lines { flex: 1; overflow-y: auto; margin-bottom: 1rem; min-height: 0; }
+  .bill-line {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.5rem 0; border-bottom: 1px dashed var(--clay); font-size: 0.88rem;
+  }
+  .bill-line__name { font-family: 'Noto Sans Tamil', var(--font-body); flex: 1; padding-right: 0.5rem; }
+  .bill-line__qty { font-family: var(--font-mono); color: var(--saffron); margin-right: 0.4rem; }
+  .bill-line__remove { background: none; border: none; color: var(--clay); cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem; }
+
+  .bill-empty { text-align: center; color: var(--clay); font-family: var(--font-mono); font-size: 0.85rem; padding: 2rem 0; }
+
+  .bill-total-row {
+    display: flex; justify-content: space-between; font-family: var(--font-mono); font-weight: 700;
+    font-size: 1.15rem; padding: 0.8rem 0; border-top: 2px solid var(--clay); margin-bottom: 1rem;
+    flex-shrink: 0;
+  }
+
+  .payment-row { display: flex; gap: 0.6rem; margin-bottom: 1rem; flex-shrink: 0; }
+
+  .customer-fields { flex-shrink: 0; margin-bottom: 0.8rem; }
+  .customer-input {
+    width: 100%; padding: 0.6rem 0.8rem; border-radius: 8px;
+    border: 1.5px solid var(--clay); background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); font-size: 0.85rem;
+  }
+  .customer-input:focus { outline: none; border-color: var(--saffron); }
+  .payment-btn {
+    flex: 1; padding: 0.7rem; border-radius: 10px; border: 2px solid var(--clay);
+    background: transparent; color: var(--paper); font-weight: 700; cursor: pointer;
+  }
+  .payment-btn--active { border-color: var(--saffron); background: rgba(227,168,59,0.12); color: var(--saffron); }
+
+  .printer-status {
+    font-family: var(--font-mono); font-size: 0.72rem; color: var(--clay);
+    display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.8rem;
+  }
+  .printer-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--clay); }
+  .printer-dot--connected { background: var(--curry-bright); }
+
+  .primary-btn {
+    width: 100%; padding: 0.95rem; border: none; border-radius: 12px;
+    background: var(--ember); color: var(--paper); font-family: var(--font-body);
+    font-weight: 700; font-size: 1rem; cursor: pointer; margin-bottom: 0.6rem;
+    flex-shrink: 0;
+  }
+  .primary-btn:hover { background: var(--ember-dark); }
+  .primary-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .secondary-btn {
+    width: 100%; padding: 0.7rem; border: 1px solid var(--clay); border-radius: 12px;
+    background: transparent; color: var(--paper); font-family: var(--font-body); font-size: 0.85rem; cursor: pointer;
+    flex-shrink: 0;
+  }
+  .secondary-btn:hover { border-color: var(--saffron); color: var(--saffron); }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--ember-dark); color: var(--paper); padding: 0.7rem 1.2rem; border-radius: 999px;
+    font-size: 0.85rem; z-index: 60; display: none; max-width: 90%; text-align: center;
+  }
+  .toast.visible { display: block; }
+  .toast.success { background: var(--curry); }
+
+  #receipt-canvas { display: none; }
+
+  .auth-gate {
+    position: fixed; inset: 0; background: var(--ink); display: flex; align-items: center; justify-content: center;
+    z-index: 100; font-family: var(--font-mono); color: var(--saffron); font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="auth-gate" id="auth-gate">Checking login…</div>
+
+<div class="topbar">
+  <div>
+    <p class="topbar__title">Hotel Mathar Bhai</p>
+    <p class="topbar__subtitle">POS Billing</p>
+  </div>
+  <div class="topbar__right">
+    <span class="printer-status"><span class="printer-dot" id="printer-dot"></span><span id="printer-label">Printer not connected</span></span>
+    <button class="pill-btn" id="connect-printer-btn">Connect printer</button>
+    <button class="pill-btn" id="held-bills-btn" style="position:relative;">
+      Held Bills
+      <span class="held-badge" id="held-bills-badge" style="display:none;">0</span>
+    </button>
+    <button class="pill-btn" id="logout-btn">Log out</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="menu-panel">
+    <div class="order-type-row">
+      <button class="order-type-btn order-type-btn--active" id="type-parcel">📦 Parcel</button>
+      <button class="order-type-btn" id="type-dinein">🍽 Dine-in</button>
+    </div>
+    <div id="category-tabs"></div>
+    <div id="menu-empty-notice" style="display:none; text-align:center; color:var(--clay); font-family:var(--font-mono); font-size:0.85rem; padding:2rem 1rem;">
+      No menu items yet. Ask a manager to add dishes via <strong style="color:var(--saffron);">Dashboard → Manage Menu</strong>.
+    </div>
+    <div id="menu-items"></div>
+  </div>
+
+  <div class="custom-panel">
+    <p class="custom-panel__title">Custom Item</p>
+    <p class="custom-panel__hint">For anything not on the menu — specials, one-off charges, etc.</p>
+    <div class="modal-field">
+      <label for="custom-item-name">Item name</label>
+      <input type="text" id="custom-item-name" placeholder="e.g. Special Combo">
+    </div>
+    <div class="modal-field">
+      <label for="custom-item-price">Price (₹)</label>
+      <input type="number" id="custom-item-price" min="0" step="1" placeholder="0">
+    </div>
+    <div class="modal-field">
+      <label for="custom-item-qty">Quantity</label>
+      <input type="number" id="custom-item-qty" min="1" step="1" value="1">
+    </div>
+    <button class="custom-panel__add-btn" id="confirm-custom-item-btn">+ Add to bill</button>
+  </div>
+
+  <div class="bill-panel">
+    <p class="bill-panel__title">Current Bill</p>
+    <div class="bill-lines" id="bill-lines"></div>
+    <div class="bill-total-row"><span>Total</span><span id="bill-total">₹0</span></div>
+
+    <div class="payment-row">
+      <button class="payment-btn payment-btn--active" id="pay-cash">Cash</button>
+      <button class="payment-btn" id="pay-upi">UPI</button>
+    </div>
+
+    <div class="customer-fields">
+      <input type="text" id="customer-name" class="customer-input" placeholder="Customer name (optional)">
+      <input type="tel" id="customer-phone" class="customer-input" placeholder="Phone number (optional)" style="margin-top: 0.5rem;">
+    </div>
+
+    <button class="primary-btn" id="checkout-btn">Generate &amp; Print Bill</button>
+    <button class="secondary-btn" id="hold-bill-btn">Hold this bill</button>
+    <button class="secondary-btn" id="clear-bill-btn">Clear bill</button>
+  </div>
+</div>
+
+<canvas id="receipt-canvas"></canvas>
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="held-bills-modal">
+  <div class="modal-card" style="max-width: 420px; text-align: left;">
+    <p class="modal-card__title">Held Bills</p>
+    <div id="held-bills-list"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel-btn" id="close-held-bills-btn" style="flex:1;">Close</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, addDoc, doc, runTransaction, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDiB9xbeRHC91Pyvw1pr1odagfHck01dOA",
+    authDomain: "hotel-mathar-bhai-orders.firebaseapp.com",
+    projectId: "hotel-mathar-bhai-orders",
+    storageBucket: "hotel-mathar-bhai-orders.firebasestorage.app",
+    messagingSenderId: "106949196895",
+    appId: "1:106949196895:web:b320878772de39eab8afea"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Set these up FIRST, before anything tries to use them
+  window.__db = db;
+  window.__collection = collection;
+  window.__addDoc = addDoc;
+  window.__doc = doc;
+  window.__runTransaction = runTransaction;
+  window.__onSnapshot = onSnapshot;
+  window.__serverTimestamp = serverTimestamp;
+  window.__firebaseReady = true;
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) { window.location.href = "pos-login.html"; return; }
+    document.getElementById("auth-gate").style.display = "none";
+    if (window.__startMenuListener) window.__startMenuListener();
+  });
+
+  document.getElementById("logout-btn").addEventListener("click", async () => {
+    await signOut(auth);
+    window.location.href = "pos-login.html";
+  });
+</script>
+
+<script>
+  // ---------- Menu data — now loaded live from Firestore, managed via menu-admin.html ----------
+  let CATEGORIES = [];
+  let MENU = [];
+
+  function formatPrice(n) { return "\u20B9" + n; }
+
+  // ---------- State ----------
+  const bill = {}; // { itemId: qty }  — regular menu items
+  const customItems = []; // [{ id, name, price, qty }]  — staff-added ad hoc items
+  let orderType = "parcel"; // "parcel" | "dinein"
+  let paymentMethod = "cash"; // "cash" | "upi"
+  let heldBills = []; // [{ id, label, orderType, paymentMethod, bill, customItems, customerName, customerPhone }]
+  let printerCharacteristic = null;
+
+  // ---------- Menu rendering ----------
+  let activeCategory = CATEGORIES[0];
+
+  function renderCategoryTabs() {
+    const container = document.getElementById("category-tabs");
+    container.className = "category-tabs";
+    container.innerHTML = "";
+    CATEGORIES.forEach(category => {
+      const tab = document.createElement("button");
+      tab.className = "category-tab" + (category === activeCategory ? " category-tab--active" : "");
+      tab.textContent = category;
+      tab.onclick = () => {
+        activeCategory = category;
+        renderCategoryTabs();
+        renderMenuItems();
+      };
+      container.appendChild(tab);
+    });
+  }
+
+  function renderMenuItems() {
+    const container = document.getElementById("menu-items");
+    container.innerHTML = "";
+
+    const items = MENU.filter(i => i.category === activeCategory);
+    const grid = document.createElement("div");
+    grid.className = "item-grid";
+    items.forEach(item => {
+      const tile = document.createElement("div");
+      tile.className = "item-tile";
+      tile.id = "tile-" + item.id;
+      renderTileControl(tile, item);
+      grid.appendChild(tile);
+    });
+    container.appendChild(grid);
+  }
+
+  function renderTileControl(tile, item) {
+    const qty = bill[item.id] || 0;
+    tile.innerHTML = `
+      <div>
+        <div class="item-tile__name">${item.name}</div>
+        <div class="item-tile__price">${formatPrice(item.price)}</div>
+      </div>
+    `;
+    if (qty === 0) {
+      const btn = document.createElement("button");
+      btn.className = "add-tile-btn";
+      btn.textContent = "+";
+      btn.onclick = () => setQty(item.id, 1);
+      tile.appendChild(btn);
+    } else {
+      const stepper = document.createElement("div");
+      stepper.className = "stepper";
+      stepper.innerHTML = `
+        <button class="stepper-btn" data-d="-1">&minus;</button>
+        <span class="stepper-qty">${qty}</span>
+        <button class="stepper-btn" data-d="1">+</button>
+      `;
+      stepper.querySelectorAll(".stepper-btn").forEach(b => {
+        b.onclick = () => setQty(item.id, qty + parseInt(b.dataset.d));
+      });
+      tile.appendChild(stepper);
+    }
+  }
+
+  function setQty(itemId, qty) {
+    qty = Math.max(0, qty);
+    if (qty === 0) delete bill[itemId]; else bill[itemId] = qty;
+    const item = MENU.find(i => i.id === itemId);
+    renderTileControl(document.getElementById("tile-" + itemId), item);
+    renderBill();
+  }
+
+  function renderBill() {
+    const container = document.getElementById("bill-lines");
+    const entries = Object.entries(bill).filter(([, qty]) => qty > 0);
+
+    if (entries.length === 0 && customItems.length === 0) {
+      container.innerHTML = `<div class="bill-empty">No items yet.<br>Tap items on the left to add them.</div>`;
+      document.getElementById("bill-total").textContent = formatPrice(0);
+      return;
+    }
+
+    let total = 0;
+    const menuRows = entries.map(([itemId, qty]) => {
+      const item = MENU.find(i => i.id === itemId);
+      const lineTotal = item.price * qty;
+      total += lineTotal;
+      return `
+        <div class="bill-line">
+          <span class="bill-line__name"><span class="bill-line__qty">${qty}×</span>${item.name}</span>
+          <span>${formatPrice(lineTotal)}</span>
+          <button class="bill-line__remove" onclick="setQty('${itemId}', 0)">✕</button>
+        </div>
+      `;
+    }).join("");
+
+    const customRows = customItems.map((ci, idx) => {
+      const lineTotal = ci.price * ci.qty;
+      total += lineTotal;
+      return `
+        <div class="bill-line">
+          <span class="bill-line__name"><span class="bill-line__qty">${ci.qty}×</span>${ci.name} <em style="opacity:0.6; font-style:italic;">(custom)</em></span>
+          <span>${formatPrice(lineTotal)}</span>
+          <button class="bill-line__remove" onclick="removeCustomItem(${idx})">✕</button>
+        </div>
+      `;
+    }).join("");
+
+    container.innerHTML = menuRows + customRows;
+    document.getElementById("bill-total").textContent = formatPrice(total);
+  }
+
+  function removeCustomItem(idx) {
+    customItems.splice(idx, 1);
+    renderBill();
+  }
+
+  // ---------- Order type / payment toggles ----------
+  function setOrderType(type) {
+    orderType = type;
+    document.getElementById("type-parcel").classList.toggle("order-type-btn--active", type === "parcel");
+    document.getElementById("type-dinein").classList.toggle("order-type-btn--active", type === "dinein");
+  }
+  function setPaymentMethod(method) {
+    paymentMethod = method;
+    document.getElementById("pay-cash").classList.toggle("payment-btn--active", method === "cash");
+    document.getElementById("pay-upi").classList.toggle("payment-btn--active", method === "upi");
+  }
+
+  document.getElementById("type-parcel").onclick = () => setOrderType("parcel");
+  document.getElementById("type-dinein").onclick = () => setOrderType("dinein");
+  document.getElementById("pay-cash").onclick = () => setPaymentMethod("cash");
+  document.getElementById("pay-upi").onclick = () => setPaymentMethod("upi");
+
+  // ---------- Hold Bill ----------
+  function currentBillIsEmpty() {
+    const hasMenuItems = Object.values(bill).some(qty => qty > 0);
+    return !hasMenuItems && customItems.length === 0;
+  }
+
+  function resetCurrentBill() {
+    Object.keys(bill).forEach(k => delete bill[k]);
+    customItems.length = 0;
+    document.getElementById("customer-name").value = "";
+    document.getElementById("customer-phone").value = "";
+    setOrderType("parcel");
+    setPaymentMethod("cash");
+    renderMenuItems();
+    renderBill();
+  }
+
+  function holdCurrentBill(silent) {
+    if (currentBillIsEmpty()) {
+      if (!silent) showToast("Nothing to hold — the bill is empty.");
+      return false;
+    }
+    const name = document.getElementById("customer-name").value.trim();
+    const snapshot = {
+      id: "hold-" + Date.now() + "-" + Math.floor(Math.random() * 1000),
+      label: (name || "Bill") + " · " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      orderType,
+      paymentMethod,
+      bill: { ...bill },
+      customItems: customItems.map(ci => ({ ...ci })),
+      customerName: name,
+      customerPhone: document.getElementById("customer-phone").value.trim()
+    };
+    heldBills.push(snapshot);
+    resetCurrentBill();
+    renderHeldBills();
+    return true;
+  }
+
+  function resumeHeldBill(id) {
+    const idx = heldBills.findIndex(h => h.id === id);
+    if (idx === -1) return;
+
+    if (!currentBillIsEmpty()) {
+      holdCurrentBill(true); // auto-hold whatever's on screen so nothing is lost
+    }
+
+    const snap = heldBills[idx];
+    heldBills.splice(idx, 1);
+
+    Object.keys(bill).forEach(k => delete bill[k]);
+    Object.assign(bill, snap.bill);
+    customItems.length = 0;
+    customItems.push(...snap.customItems);
+    setOrderType(snap.orderType);
+    setPaymentMethod(snap.paymentMethod);
+    document.getElementById("customer-name").value = snap.customerName || "";
+    document.getElementById("customer-phone").value = snap.customerPhone || "";
+
+    renderMenuItems();
+    renderBill();
+    renderHeldBills();
+    document.getElementById("held-bills-modal").classList.remove("visible");
+    showToast("Bill resumed.", true);
+  }
+
+  function deleteHeldBill(id) {
+    if (!confirm("Discard this held bill? This can't be undone.")) return;
+    heldBills = heldBills.filter(h => h.id !== id);
+    renderHeldBills();
+  }
+
+  function renderHeldBills() {
+    const badge = document.getElementById("held-bills-badge");
+    badge.textContent = heldBills.length;
+    badge.style.display = heldBills.length > 0 ? "flex" : "none";
+
+    const list = document.getElementById("held-bills-list");
+    if (heldBills.length === 0) {
+      list.innerHTML = `<div class="held-empty">No held bills right now.</div>`;
+      return;
+    }
+    list.innerHTML = heldBills.map(h => {
+      const itemCount = Object.values(h.bill).reduce((a, b) => a + b, 0) + h.customItems.reduce((a, ci) => a + ci.qty, 0);
+      return `
+        <div class="held-bill-row">
+          <span class="held-bill-row__label">${h.label} <span style="opacity:0.6; font-weight:400;">(${itemCount} item${itemCount === 1 ? "" : "s"})</span></span>
+          <div class="held-bill-row__actions">
+            <button class="held-resume-btn" onclick="resumeHeldBill('${h.id}')">Resume</button>
+            <button class="held-delete-btn" onclick="deleteHeldBill('${h.id}')">Discard</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  document.getElementById("hold-bill-btn").onclick = () => {
+    if (holdCurrentBill()) showToast("Bill held. Ready for the next customer.", true);
+  };
+
+  document.getElementById("held-bills-btn").onclick = () => {
+    renderHeldBills();
+    document.getElementById("held-bills-modal").classList.add("visible");
+  };
+  document.getElementById("close-held-bills-btn").onclick = () => {
+    document.getElementById("held-bills-modal").classList.remove("visible");
+  };
+
+  window.resumeHeldBill = resumeHeldBill;
+  window.deleteHeldBill = deleteHeldBill;
+
+  document.getElementById("clear-bill-btn").onclick = () => {
+    resetCurrentBill();
+  };
+
+  // ---------- Custom item panel ----------
+  document.getElementById("confirm-custom-item-btn").onclick = () => {
+    const nameField = document.getElementById("custom-item-name");
+    const priceField = document.getElementById("custom-item-price");
+    const qtyField = document.getElementById("custom-item-qty");
+
+    const name = nameField.value.trim();
+    const price = parseFloat(priceField.value);
+    const qty = parseInt(qtyField.value);
+
+    if (!name) { showToast("Enter an item name."); return; }
+    if (!price || price <= 0) { showToast("Enter a valid price."); return; }
+    if (!qty || qty <= 0) { showToast("Enter a valid quantity."); return; }
+
+    customItems.push({ id: "custom-" + Date.now(), name, price, qty });
+    renderBill();
+    showToast(`Added "${name}" to the bill.`, true);
+
+    // reset the panel for the next entry
+    nameField.value = "";
+    priceField.value = "";
+    qtyField.value = "1";
+    nameField.focus();
+  };
+
+  function showToast(msg, success) {
+    const toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.className = "toast visible" + (success ? " success" : "");
+    setTimeout(() => { toast.className = "toast"; }, 3500);
+  }
+
+  // ---------- Bluetooth printer connection ----------
+  document.getElementById("connect-printer-btn").onclick = async () => {
+    if (!navigator.bluetooth) {
+      showToast("Web Bluetooth isn't supported in this browser. Use Chrome on Windows/Mac/Android.");
+      return;
+    }
+    try {
+      const device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: [0x18F0, 0xFF00, 0xFFE0, '49535343-fe7d-4ae5-8fa9-9fafd205e455', '000018f0-0000-1000-8000-00805f9b34fb']
+      });
+      const server = await device.gatt.connect();
+      const services = await server.getPrimaryServices();
+      let found = null;
+      for (const service of services) {
+        const chars = await service.getCharacteristics();
+        for (const ch of chars) {
+          if (ch.properties.write || ch.properties.writeWithoutResponse) { found = ch; break; }
+        }
+        if (found) break;
+      }
+      if (!found) throw new Error("No writable characteristic found on this printer.");
+      printerCharacteristic = found;
+      document.getElementById("printer-dot").classList.add("printer-dot--connected");
+      document.getElementById("printer-label").textContent = "Printer: " + (device.name || "connected");
+      showToast("Printer connected.", true);
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't connect to printer: " + err.message);
+    }
+  };
+
+  async function sendToPrinter(bytes) {
+    if (!printerCharacteristic) throw new Error("Printer not connected");
+    const chunkSize = 20; // conservative default BLE MTU
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.slice(i, i + chunkSize);
+      await printerCharacteristic.writeValue(chunk);
+      await new Promise(r => setTimeout(r, 8));
+    }
+  }
+
+  // ---------- Receipt rendering (as image, for Tamil script support) ----------
+  function buildReceiptCanvas(billNo, type, lines, total, payment) {
+    const WIDTH = 384; // standard dot-width for 58mm ESC/POS printers
+    const canvas = document.getElementById("receipt-canvas");
+    const ctx = canvas.getContext("2d");
+
+    const lineHeight = 26;
+    const itemLines = lines.length;
+    const headerHeight = 130;
+    const footerHeight = 90;
+    const height = headerHeight + itemLines * lineHeight + footerHeight;
+
+    canvas.width = WIDTH;
+    canvas.height = height;
+
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, WIDTH, height);
+    ctx.fillStyle = "#000";
+    ctx.textBaseline = "top";
+
+    let y = 10;
+    ctx.font = "bold 22px 'Noto Sans Tamil', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Hotel Mathar Bhai", WIDTH / 2, y);
+    y += 30;
+
+    ctx.font = "13px monospace";
+    ctx.fillText(type === "parcel" ? "PARCEL" : "DINE-IN", WIDTH / 2, y);
+    y += 20;
+    ctx.fillText("Bill #" + billNo, WIDTH / 2, y);
+    y += 18;
+    ctx.fillText(new Date().toLocaleString(), WIDTH / 2, y);
+    y += 22;
+
+    ctx.textAlign = "left";
+    ctx.beginPath(); ctx.moveTo(10, y); ctx.lineTo(WIDTH - 10, y); ctx.strokeStyle = "#000"; ctx.stroke();
+    y += 10;
+
+    ctx.font = "15px 'Noto Sans Tamil', sans-serif";
+    lines.forEach(l => {
+      ctx.textAlign = "left";
+      ctx.fillText(`${l.qty}x ${l.name}`, 12, y);
+      ctx.textAlign = "right";
+      ctx.font = "14px monospace";
+      ctx.fillText(String(l.lineTotal), WIDTH - 12, y);
+      ctx.font = "15px 'Noto Sans Tamil', sans-serif";
+      y += lineHeight;
+    });
+
+    ctx.beginPath(); ctx.moveTo(10, y); ctx.lineTo(WIDTH - 10, y); ctx.stroke();
+    y += 12;
+
+    ctx.font = "bold 18px monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("TOTAL", 12, y);
+    ctx.textAlign = "right";
+    ctx.fillText("Rs " + total, WIDTH - 12, y);
+    y += 26;
+
+    ctx.font = "14px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("Paid via " + payment.toUpperCase(), WIDTH / 2, y);
+    y += 22;
+    ctx.fillText("Thank you, visit again!", WIDTH / 2, y);
+
+    return canvas;
+  }
+
+  function canvasToRaster(canvas) {
+    const ctx = canvas.getContext("2d");
+    const { width, height } = canvas;
+    const imgData = ctx.getImageData(0, 0, width, height).data;
+    const widthBytes = Math.ceil(width / 8);
+    const bitmap = new Uint8Array(widthBytes * height);
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const idx = (y * width + x) * 4;
+        const r = imgData[idx], g = imgData[idx + 1], b = imgData[idx + 2];
+        const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+        if (luminance < 160) {
+          const byteIndex = y * widthBytes + Math.floor(x / 8);
+          bitmap[byteIndex] |= (0x80 >> (x % 8));
+        }
+      }
+    }
+
+    const xL = widthBytes & 0xFF, xH = (widthBytes >> 8) & 0xFF;
+    const yL = height & 0xFF, yH = (height >> 8) & 0xFF;
+    const header = new Uint8Array([0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH]);
+    const out = new Uint8Array(header.length + bitmap.length);
+    out.set(header, 0);
+    out.set(bitmap, header.length);
+    return out;
+  }
+
+  async function printReceipt(billNo, type, lines, total, payment) {
+    const canvas = buildReceiptCanvas(billNo, type, lines, total, payment);
+    const raster = canvasToRaster(canvas);
+    const init = new Uint8Array([0x1B, 0x40]); // ESC @ initialize
+    const feedAndCut = new Uint8Array([0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x42, 0x00]); // feed + partial cut
+
+    const full = new Uint8Array(init.length + raster.length + feedAndCut.length);
+    full.set(init, 0);
+    full.set(raster, init.length);
+    full.set(feedAndCut, init.length + raster.length);
+
+    await sendToPrinter(full);
+  }
+
+  function todayKey() {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  async function getNextBillNumber() {
+    const counterRef = window.__doc(window.__db, "counters", todayKey());
+    const nextNumber = await window.__runTransaction(window.__db, async (transaction) => {
+      const snap = await transaction.get(counterRef);
+      const next = (snap.exists() ? snap.data().count : 0) + 1;
+      transaction.set(counterRef, { count: next }, { merge: true });
+      return next;
+    });
+    return nextNumber;
+  }
+
+  const LOYALTY_RATE = 100; // ₹100 spent = 1 point
+
+  async function upsertCustomer(phone, name, amount) {
+    if (!phone) return null; // no phone provided — skip marketing/loyalty record, bill still saves fine
+    const pointsEarned = Math.floor(amount / LOYALTY_RATE);
+    const customerRef = window.__doc(window.__db, "customers", phone);
+    const newTotalPoints = await window.__runTransaction(window.__db, async (transaction) => {
+      const snap = await transaction.get(customerRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        const totalPoints = (data.loyaltyPoints || 0) + pointsEarned;
+        transaction.set(customerRef, {
+          name: name || data.name || "",
+          phone,
+          visitCount: (data.visitCount || 0) + 1,
+          totalSpent: (data.totalSpent || 0) + amount,
+          loyaltyPoints: totalPoints,
+          lastVisit: window.__serverTimestamp(),
+          firstVisit: data.firstVisit || window.__serverTimestamp()
+        }, { merge: true });
+        return totalPoints;
+      } else {
+        transaction.set(customerRef, {
+          name: name || "",
+          phone,
+          visitCount: 1,
+          totalSpent: amount,
+          loyaltyPoints: pointsEarned,
+          lastVisit: window.__serverTimestamp(),
+          firstVisit: window.__serverTimestamp()
+        });
+        return pointsEarned;
+      }
+    });
+    return { pointsEarned, totalPoints: newTotalPoints };
+  }
+
+  // ---------- Checkout ----------
+  document.getElementById("checkout-btn").onclick = async () => {
+    const entries = Object.entries(bill).filter(([, qty]) => qty > 0);
+    if (entries.length === 0 && customItems.length === 0) { showToast("Add at least one item first."); return; }
+    if (!window.__firebaseReady) { showToast("Connection not ready — try again in a moment."); return; }
+
+    const btn = document.getElementById("checkout-btn");
+    btn.disabled = true;
+    btn.textContent = "Processing...";
+
+    let total = 0;
+    const menuLines = entries.map(([itemId, qty]) => {
+      const item = MENU.find(i => i.id === itemId);
+      const lineTotal = item.price * qty;
+      total += lineTotal;
+      return { name: item.name, category: item.category, qty, price: item.price, lineTotal };
+    });
+    const customLines = customItems.map(ci => {
+      const lineTotal = ci.price * ci.qty;
+      total += lineTotal;
+      return { name: ci.name, category: "Custom Item", qty: ci.qty, price: ci.price, lineTotal };
+    });
+    const lines = [...menuLines, ...customLines];
+
+    try {
+      const seqNumber = await getNextBillNumber();
+      const billNo = String(seqNumber).padStart(3, "0");
+
+      const customerName = document.getElementById("customer-name").value.trim();
+      const customerPhone = document.getElementById("customer-phone").value.trim();
+
+      // Always record the sale for the dashboard
+      await window.__addDoc(window.__collection(window.__db, "bills"), {
+        billNo,
+        type: orderType,
+        items: lines,
+        total,
+        paymentMethod,
+        customerName,
+        customerPhone,
+        createdAt: window.__serverTimestamp()
+      });
+
+      // Track the customer for marketing/loyalty — only if a phone number was given
+      let loyaltyResult = null;
+      try {
+        loyaltyResult = await upsertCustomer(customerPhone, customerName, total);
+      } catch (custErr) {
+        console.error("Customer record failed (bill still saved):", custErr);
+      }
+
+      // Parcel orders also go to the KOT board — same number as the bill, so staff see one consistent number
+      if (orderType === "parcel") {
+        await window.__addDoc(window.__collection(window.__db, "orders"), {
+          token: billNo,
+          items: lines,
+          total,
+          status: "new",
+          placedAt: window.__serverTimestamp()
+        });
+      }
+
+      // Print, if a printer is connected — but don't block the sale record on it
+      if (printerCharacteristic) {
+        try {
+          await printReceipt(billNo, orderType, lines, total, paymentMethod);
+        } catch (printErr) {
+          console.error(printErr);
+          showToast("Bill saved, but printing failed: " + printErr.message);
+        }
+      } else {
+        showToast("Bill saved (printer not connected — connect it to print).");
+      }
+
+      const loyaltyMsg = loyaltyResult && loyaltyResult.pointsEarned > 0
+        ? ` — +${loyaltyResult.pointsEarned} loyalty pts (total: ${loyaltyResult.totalPoints})`
+        : "";
+      showToast(`Bill #${billNo} saved` + (orderType === "parcel" ? ` — same number on KOT` : "") + loyaltyMsg, true);
+
+      Object.keys(bill).forEach(k => delete bill[k]);
+      customItems.length = 0;
+      document.getElementById("customer-name").value = "";
+      document.getElementById("customer-phone").value = "";
+      renderMenuItems();
+      renderBill();
+    } catch (err) {
+      console.error(err);
+      showToast("Could not save this bill — check your connection and try again.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Generate & Print Bill";
+    }
+  };
+
+  window.setQty = setQty;
+  window.removeCustomItem = removeCustomItem;
+
+  // ---------- Live menu — loaded from Firestore, managed via menu-admin.html ----------
+  let menuLoaded = false;
+
+  window.__startMenuListener = function () {
+    // Categories (ordered list) live at config/categories
+    window.__onSnapshot(window.__doc(window.__db, "config", "categories"), (snap) => {
+      CATEGORIES = snap.exists() ? (snap.data().names || []) : [];
+      if (!CATEGORIES.includes(activeCategory)) activeCategory = CATEGORIES[0];
+      renderCategoryTabs();
+      renderMenuItems();
+    });
+
+    // Items live in the menu_items collection
+    window.__onSnapshot(window.__collection(window.__db, "menu_items"), (snap) => {
+      MENU = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      menuLoaded = true;
+      document.getElementById("menu-empty-notice").style.display = MENU.length === 0 ? "block" : "none";
+      renderMenuItems();
+    });
+  };
+
+  renderBill();
+</script>
+
+</body>
+</html>

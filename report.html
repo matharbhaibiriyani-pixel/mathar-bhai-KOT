@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Mathar Bhai — Reports</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Karla:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #241A14; --ember: #B23A2E; --ember-dark: #8E2E24;
+    --saffron: #E3A83B; --curry: #4F5D3A; --curry-bright: #7C9463;
+    --clay: #7A4B32; --paper: #FBF6E9;
+    --font-display: 'Fraunces', serif; --font-body: 'Karla', sans-serif; --font-mono: 'Space Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--ink); color: var(--paper); font-family: var(--font-body); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 1.75rem; border-bottom: 1px solid var(--clay); background: #1D140F;
+    flex-wrap: wrap; gap: 0.75rem;
+  }
+  .topbar__title { font-family: var(--font-display); font-weight: 900; font-size: 1.5rem; margin: 0; }
+  .topbar__subtitle { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--saffron); margin: 0.15rem 0 0; }
+
+  .pill-btn {
+    background: none; border: 1px solid var(--clay); color: var(--paper);
+    font-family: var(--font-body); font-size: 0.8rem; padding: 0.45rem 0.9rem; border-radius: 999px; cursor: pointer;
+  }
+  .pill-btn:hover { border-color: var(--saffron); color: var(--saffron); }
+
+  .content { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .month-picker-row {
+    display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.75rem; flex-wrap: wrap;
+  }
+  .month-picker-row label { font-family: var(--font-mono); font-size: 0.78rem; color: var(--saffron); }
+  .month-picker-row input[type="month"] {
+    padding: 0.55rem 0.8rem; border-radius: 8px; border: 1.5px solid var(--clay);
+    background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 0.9rem;
+  }
+  .loading-note { font-family: var(--font-mono); font-size: 0.78rem; color: var(--clay); }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: var(--paper); color: var(--ink); border-radius: 16px; padding: 1.4rem 1.5rem; position: relative; overflow: hidden; }
+  .stat-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--ember); }
+  .stat-card__label { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--clay); margin: 0 0 0.5rem; }
+  .stat-card__value { font-family: var(--font-display); font-weight: 900; font-size: 2rem; margin: 0; }
+  .stat-card__sub { font-family: var(--font-mono); font-size: 0.78rem; color: var(--clay); margin-top: 0.3rem; }
+
+  .section-title { font-family: var(--font-display); font-weight: 900; font-size: 1.3rem; margin: 0 0 1rem; }
+
+  .report-category { margin-bottom: 1.4rem; }
+  .report-category__label {
+    font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--curry-bright); margin: 0 0 0.6rem 0.1rem;
+  }
+  .report-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.6rem; }
+  .report-item {
+    background: var(--paper); color: var(--ink); border-radius: 10px; padding: 0.7rem 0.9rem;
+    display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+  }
+  .report-item__name { font-size: 0.88rem; font-weight: 700; }
+  .report-item__qty {
+    font-family: var(--font-mono); font-weight: 700; font-size: 0.95rem; color: var(--ember-dark);
+    background: rgba(178,58,46,0.1); border-radius: 999px; padding: 0.15rem 0.6rem; flex-shrink: 0;
+  }
+
+  .search-row { margin-bottom: 1rem; }
+  .search-row input {
+    width: 100%; max-width: 320px; padding: 0.6rem 0.9rem; border-radius: 8px;
+    border: 1.5px solid var(--clay); background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); font-size: 0.88rem;
+  }
+
+  .cust-table, .bill-table, .daily-table { width: 100%; border-collapse: collapse; background: var(--paper); color: var(--ink); border-radius: 12px; overflow: hidden; }
+  .cust-table th, .cust-table td, .bill-table th, .bill-table td, .daily-table th, .daily-table td { text-align: left; padding: 0.7rem 1rem; font-size: 0.88rem; }
+  .cust-table th, .bill-table th, .daily-table th { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--clay); border-bottom: 2px solid var(--clay); }
+  .cust-table td, .bill-table td, .daily-table td { border-bottom: 1px solid #E5D6B4; }
+  .cust-table tr:last-child td, .bill-table tr:last-child td, .daily-table tr:last-child td { border-bottom: none; }
+  .daily-table td.num, .daily-table th.num { text-align: right; font-family: var(--font-mono); }
+
+  .empty-state { text-align: center; color: var(--clay); font-family: var(--font-mono); font-size: 0.9rem; padding: 3rem 1rem; }
+
+  .section-block { margin-bottom: 2.5rem; }
+
+  .auth-gate {
+    position: fixed; inset: 0; background: var(--ink); display: flex; align-items: center; justify-content: center;
+    z-index: 100; font-family: var(--font-mono); color: var(--saffron); font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="auth-gate" id="auth-gate">Checking login…</div>
+
+<div class="topbar">
+  <div>
+    <p class="topbar__title">Hotel Mathar Bhai</p>
+    <p class="topbar__subtitle">Reports</p>
+  </div>
+  <div style="display:flex; gap:0.6rem; flex-wrap: wrap;">
+    <button class="pill-btn" onclick="window.location.href='pos.html'">POS</button>
+    <button class="pill-btn" onclick="window.location.href='dashboard.html'">Today's Dashboard</button>
+    <button class="pill-btn" id="logout-btn">Log out</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="month-picker-row">
+    <label for="month-picker">Month:</label>
+    <input type="month" id="month-picker">
+    <span class="loading-note" id="loading-note"></span>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <p class="stat-card__label">Monthly Revenue</p>
+      <p class="stat-card__value" id="stat-month-revenue">₹0</p>
+      <p class="stat-card__sub" id="stat-month-bills">0 bills</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-card__label">Yearly Revenue</p>
+      <p class="stat-card__value" id="stat-year-revenue">₹0</p>
+      <p class="stat-card__sub" id="stat-year-bills">0 bills</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-card__label">Cash / UPI (this month)</p>
+      <p class="stat-card__value" id="stat-month-split" style="font-size:1.3rem;">₹0 / ₹0</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-card__label">Total Customers Tracked</p>
+      <p class="stat-card__value" id="stat-customer-count">0</p>
+    </div>
+  </div>
+
+  <div class="section-block">
+    <p class="section-title">Item-wise Sales — <span id="item-report-month-label"></span></p>
+    <div id="item-report"></div>
+  </div>
+
+  <div class="section-block">
+    <p class="section-title">Daily Sales — <span id="daily-report-month-label"></span></p>
+    <table class="daily-table" id="daily-table">
+      <thead>
+        <tr><th>Date</th><th class="num">Bills</th><th class="num">Cash</th><th class="num">UPI</th><th class="num">Total</th></tr>
+      </thead>
+      <tbody id="daily-table-body"></tbody>
+    </table>
+  </div>
+
+  <div class="section-block">
+    <p class="section-title">Customer List</p>
+    <div class="search-row">
+      <input type="text" id="customer-search" placeholder="Search by name or phone...">
+    </div>
+    <table class="cust-table" id="cust-table">
+      <thead>
+        <tr><th>Name</th><th>Phone</th><th>Visits</th><th>Total Spent</th><th>Loyalty Points</th><th>Last Visit</th></tr>
+      </thead>
+      <tbody id="cust-table-body"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, query, where, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDiB9xbeRHC91Pyvw1pr1odagfHck01dOA",
+    authDomain: "hotel-mathar-bhai-orders.firebaseapp.com",
+    projectId: "hotel-mathar-bhai-orders",
+    storageBucket: "hotel-mathar-bhai-orders.firebasestorage.app",
+    messagingSenderId: "106949196895",
+    appId: "1:106949196895:web:b320878772de39eab8afea"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let allCustomers = [];
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) { window.location.href = "pos-login.html"; return; }
+    document.getElementById("auth-gate").style.display = "none";
+    init();
+  });
+
+  document.getElementById("logout-btn").addEventListener("click", async () => {
+    await signOut(auth);
+    window.location.href = "pos-login.html";
+  });
+
+  const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+  function init() {
+    const picker = document.getElementById("month-picker");
+    const now = new Date();
+    picker.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    picker.addEventListener("change", loadReport);
+    loadReport();
+    loadCustomers();
+
+    document.getElementById("customer-search").addEventListener("input", (e) => {
+      renderCustomerTable(filterCustomers(e.target.value));
+    });
+  }
+
+  async function loadReport() {
+    const loadingNote = document.getElementById("loading-note");
+    loadingNote.textContent = "Loading…";
+
+    const [yearStr, monthStr] = document.getElementById("month-picker").value.split("-");
+    const year = parseInt(yearStr);
+    const month = parseInt(monthStr); // 1-indexed
+
+    document.getElementById("item-report-month-label").textContent = `${MONTH_NAMES[month - 1]} ${year}`;
+
+    const startOfYear = Timestamp.fromDate(new Date(year, 0, 1));
+    const startOfNextYear = Timestamp.fromDate(new Date(year + 1, 0, 1));
+    const startOfMonth = new Date(year, month - 1, 1);
+    const startOfNextMonth = new Date(year, month, 1);
+
+    try {
+      const billsQuery = query(
+        collection(db, "bills"),
+        where("createdAt", ">=", startOfYear),
+        where("createdAt", "<", startOfNextYear)
+      );
+      const snapshot = await getDocs(billsQuery);
+      const yearBills = snapshot.docs.map(d => d.data());
+
+      const monthBills = yearBills.filter(b => {
+        if (!b.createdAt || !b.createdAt.toDate) return false;
+        const d = b.createdAt.toDate();
+        return d >= startOfMonth && d < startOfNextMonth;
+      });
+
+      renderRevenue(yearBills, monthBills);
+      renderItemReport(monthBills);
+      renderDailyReport(monthBills, year, month);
+    } catch (err) {
+      console.error(err);
+      loadingNote.textContent = "Error loading report — check console.";
+      return;
+    }
+    loadingNote.textContent = "";
+  }
+
+  function renderRevenue(yearBills, monthBills) {
+    const yearTotal = yearBills.reduce((sum, b) => sum + (b.total || 0), 0);
+    const monthTotal = monthBills.reduce((sum, b) => sum + (b.total || 0), 0);
+    const monthCash = monthBills.filter(b => b.paymentMethod === "cash").reduce((sum, b) => sum + (b.total || 0), 0);
+    const monthUpi = monthBills.filter(b => b.paymentMethod === "upi").reduce((sum, b) => sum + (b.total || 0), 0);
+
+    document.getElementById("stat-month-revenue").textContent = "₹" + monthTotal;
+    document.getElementById("stat-month-bills").textContent = monthBills.length + " bill" + (monthBills.length === 1 ? "" : "s");
+    document.getElementById("stat-year-revenue").textContent = "₹" + yearTotal;
+    document.getElementById("stat-year-bills").textContent = yearBills.length + " bill" + (yearBills.length === 1 ? "" : "s");
+    document.getElementById("stat-month-split").textContent = `₹${monthCash} / ₹${monthUpi}`;
+  }
+
+  function renderItemReport(monthBills) {
+    const byCategory = {};
+    monthBills.forEach(b => {
+      (b.items || []).forEach(line => {
+        const category = line.category || "Other";
+        const name = line.name;
+        if (!byCategory[category]) byCategory[category] = {};
+        byCategory[category][name] = (byCategory[category][name] || 0) + (line.qty || 0);
+      });
+    });
+
+    const container = document.getElementById("item-report");
+    const categories = Object.keys(byCategory);
+
+    if (categories.length === 0) {
+      container.innerHTML = `<div class="empty-state">No items sold this month.</div>`;
+      return;
+    }
+
+    container.innerHTML = categories.map(category => {
+      const items = Object.entries(byCategory[category]).sort((a, b) => b[1] - a[1]);
+      const rows = items.map(([name, qty]) => `
+        <div class="report-item">
+          <span class="report-item__name">${name}</span>
+          <span class="report-item__qty">${qty} sold</span>
+        </div>
+      `).join("");
+      return `
+        <div class="report-category">
+          <p class="report-category__label">${category}</p>
+          <div class="report-grid">${rows}</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderDailyReport(monthBills, year, month) {
+    document.getElementById("daily-report-month-label").textContent = `${MONTH_NAMES[month - 1]} ${year}`;
+
+    // { "YYYY-MM-DD": { bills, cash, upi, total } }
+    const byDay = {};
+    monthBills.forEach(b => {
+      if (!b.createdAt || !b.createdAt.toDate) return;
+      const d = b.createdAt.toDate();
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      if (!byDay[key]) byDay[key] = { bills: 0, cash: 0, upi: 0, total: 0 };
+      byDay[key].bills += 1;
+      byDay[key].total += b.total || 0;
+      if (b.paymentMethod === "cash") byDay[key].cash += b.total || 0;
+      if (b.paymentMethod === "upi") byDay[key].upi += b.total || 0;
+    });
+
+    const tbody = document.getElementById("daily-table-body");
+    const days = Object.keys(byDay).sort().reverse(); // most recent first
+
+    if (days.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">No sales recorded this month.</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = days.map(dayKey => {
+      const d = byDay[dayKey];
+      const displayDate = new Date(dayKey + "T00:00:00").toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
+      return `
+        <tr>
+          <td>${displayDate}</td>
+          <td class="num">${d.bills}</td>
+          <td class="num">₹${d.cash}</td>
+          <td class="num">₹${d.upi}</td>
+          <td class="num"><strong>₹${d.total}</strong></td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  async function loadCustomers() {
+    try {
+      const snapshot = await getDocs(collection(db, "customers"));
+      allCustomers = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      allCustomers.sort((a, b) => (b.totalSpent || 0) - (a.totalSpent || 0));
+      document.getElementById("stat-customer-count").textContent = allCustomers.length;
+      renderCustomerTable(allCustomers);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function filterCustomers(term) {
+    const t = term.trim().toLowerCase();
+    if (!t) return allCustomers;
+    return allCustomers.filter(c =>
+      (c.name || "").toLowerCase().includes(t) || (c.phone || "").includes(t)
+    );
+  }
+
+  function renderCustomerTable(customers) {
+    const tbody = document.getElementById("cust-table-body");
+    if (customers.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">No customers recorded yet.</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = customers.map(c => {
+      const lastVisit = c.lastVisit && c.lastVisit.toDate
+        ? c.lastVisit.toDate().toLocaleDateString()
+        : "—";
+      return `
+        <tr>
+          <td>${c.name || "—"}</td>
+          <td>${c.phone || "—"}</td>
+          <td>${c.visitCount || 0}</td>
+          <td>₹${c.totalSpent || 0}</td>
+          <td>${c.loyaltyPoints || 0}</td>
+          <td>${lastVisit}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+</script>
+
+</body>
+</html>
