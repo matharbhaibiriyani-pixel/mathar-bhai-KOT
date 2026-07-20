@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Mathar Bhai — Reports</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Karla:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #241A14; --ember: #B23A2E; --ember-dark: #8E2E24;
+    --saffron: #E3A83B; --curry: #4F5D3A; --curry-bright: #7C9463;
+    --clay: #7A4B32; --paper: #FBF6E9;
+    --font-display: 'Fraunces', serif; --font-body: 'Karla', sans-serif; --font-mono: 'Space Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--ink); color: var(--paper); font-family: var(--font-body); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 1.75rem; border-bottom: 1px solid var(--clay); background: #1D140F;
+    flex-wrap: wrap; gap: 0.75rem;
+  }
+  .topbar__title { font-family: var(--font-display); font-weight: 900; font-size: 1.5rem; margin: 0; }
+  .topbar__subtitle { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--saffron); margin: 0.15rem 0 0; }
+
+  .pill-btn {
+    background: none; border: 1px solid var(--clay); color: var(--paper);
+    font-family: var(--font-body); font-size: 0.8rem; padding: 0.45rem 0.9rem; border-radius: 999px; cursor: pointer;
+  }
+  .pill-btn:hover { border-color: var(--saffron); color: var(--saffron); }
+
+  .content { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .table-scroll { overflow-x: auto; border-radius: 12px; }
+
+  @media (max-width: 640px) {
+    .content { padding: 1.25rem 1rem; }
+    .stat-card__value { font-size: 1.5rem; }
+    .topbar__title { font-size: 1.25rem; }
+    .month-picker-row { align-items: stretch; }
+    #download-monthly-excel-btn { margin-left: 0; width: 100%; }
+  }
+
+  .month-picker-row {
+    display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.75rem; flex-wrap: wrap;
+  }
+  .month-picker-row label { font-family: var(--font-mono); font-size: 0.78rem; color: var(--saffron); }
+  .month-picker-row input[type="month"] {
+    padding: 0.55rem 0.8rem; border-radius: 8px; border: 1.5px solid var(--clay);
+    background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 0.9rem;
+  }
+  .loading-note { font-family: var(--font-mono); font-size: 0.78rem; color: var(--clay); }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: var(--paper); color: var(--ink); border-radius: 16px; padding: 1.4rem 1.5rem; position: relative; overflow: hidden; }
+  .stat-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--ember); }
+  .stat-card__label { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--clay); margin: 0 0 0.5rem; }
+  .stat-card__value { font-family: var(--font-display); font-weight: 900; font-size: 2rem; margin: 0; }
+  .stat-card__sub { font-family: var(--font-mono); font-size: 0.78rem; color: var(--clay); margin-top: 0.3rem; }
+
+  .section-title { font-family: var(--font-display); font-weight: 900; font-size: 1.3rem; margin: 0 0 1rem; }
+
+  .report-category { margin-bottom: 1.4rem; }
+  .report-category__label {
+    font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--curry-bright); margin: 0 0 0.6rem 0.1rem;
+  }
+  .report-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.6rem; }
+  .report-item {
+    background: var(--paper); color: var(--ink); border-radius: 10px; padding: 0.7rem 0.9rem;
+    display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;
+  }
+  .report-item__name { font-size: 0.88rem; font-weight: 700; }
+  .report-item__qty {
+    font-family: var(--font-mono); font-weight: 700; font-size: 0.95rem; color: var(--ember-dark);
+    background: rgba(178,58,46,0.1); border-radius: 999px; padding: 0.15rem 0.6rem; flex-shrink: 0;
+  }
+
+  .tag { font-family: var(--font-mono); font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 999px; }
+  .tag--parcel { background: rgba(178,58,46,0.12); color: var(--ember-dark); }
+  .tag--dinein { background: rgba(79,93,58,0.15); color: var(--curry); }
+  .tag--cash { background: rgba(227,168,59,0.15); color: var(--ember-dark); }
+  .tag--upi { background: rgba(122,75,50,0.15); color: var(--clay); }
+
+  .day-row { cursor: pointer; transition: background 0.1s ease; }
+  .day-row:hover { background: #F0E8D5; }
+
+  .search-row { margin-bottom: 1rem; }
+  .search-row input {
+    width: 100%; max-width: 320px; padding: 0.6rem 0.9rem; border-radius: 8px;
+    border: 1.5px solid var(--clay); background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); font-size: 0.88rem;
+  }
+
+  .cust-table, .bill-table, .daily-table { width: 100%; border-collapse: collapse; background: var(--paper); color: var(--ink); border-radius: 12px; overflow: hidden; }
+  .cust-table th, .cust-table td, .bill-table th, .bill-table td, .daily-table th, .daily-table td { text-align: left; padding: 0.7rem 1rem; font-size: 0.88rem; }
+  .cust-table th, .bill-table th, .daily-table th { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--clay); border-bottom: 2px solid var(--clay); }
+  .cust-table td, .bill-table td, .daily-table td { border-bottom: 1px solid #E5D6B4; }
+  .cust-table tr:last-child td, .bill-table tr:last-child td, .daily-table tr:last-child td { border-bottom: none; }
+  .daily-table td.num, .daily-table th.num { text-align: right; font-family: var(--font-mono); }
+
+  .empty-state { text-align: center; color: var(--clay); font-family: var(--font-mono); font-size: 0.9rem; padding: 3rem 1rem; }
+
+  .section-block { margin-bottom: 2.5rem; }
+
+  .report-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .report-tab {
+    background: transparent; border: 1.5px solid var(--clay); color: var(--paper);
+    font-family: var(--font-body); font-weight: 700; font-size: 0.9rem;
+    padding: 0.65rem 1.2rem; border-radius: 999px; cursor: pointer;
+  }
+  .report-tab:hover { border-color: var(--saffron); color: var(--saffron); }
+  .report-tab--active { background: var(--ember); border-color: var(--ember); color: var(--paper); }
+
+  .excel-btn { background: var(--curry); border-color: var(--curry); color: var(--paper); margin-left: auto; }
+
+  .hint-text { font-family: var(--font-mono); font-size: 0.75rem; color: var(--clay); margin: -0.5rem 0 0.75rem; }
+
+  .month-row { cursor: pointer; transition: background 0.1s ease; }
+  .month-row:hover { background: #F0E8D5; }
+
+  .auth-gate {
+    position: fixed; inset: 0; background: var(--ink); display: flex; align-items: center; justify-content: center;
+    z-index: 100; font-family: var(--font-mono); color: var(--saffron); font-size: 0.9rem;
+  }
+</style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<div class="auth-gate" id="auth-gate">Checking login…</div>
+
+<div class="topbar">
+  <div>
+    <p class="topbar__title">Hotel Mathar Bhai</p>
+    <p class="topbar__subtitle">Reports</p>
+  </div>
+  <div style="display:flex; gap:0.6rem; flex-wrap: wrap;">
+    <button class="pill-btn" onclick="window.location.href='pos.html'">POS</button>
+    <button class="pill-btn" onclick="window.location.href='dashboard.html'">Today's Dashboard</button>
+    <button class="pill-btn" id="logout-btn">Log out</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="report-tabs">
+    <button class="report-tab report-tab--active" id="tab-daily">📅 Daily</button>
+    <button class="report-tab" id="tab-monthly">🗓️ Monthly</button>
+    <button class="report-tab" id="tab-yearly">📆 Yearly</button>
+  </div>
+
+  <!-- ---------- DAILY ---------- -->
+  <div class="report-panel" id="panel-daily">
+    <div class="month-picker-row">
+      <label for="date-picker">Date:</label>
+      <input type="date" id="date-picker">
+      <span class="loading-note" id="daily-loading-note"></span>
+      <button class="pill-btn excel-btn" id="download-daily-excel-btn">⬇ Download Daily Report (Excel)</button>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <p class="stat-card__label">Total Sales</p>
+        <p class="stat-card__value" id="stat-day-revenue">₹0</p>
+        <p class="stat-card__sub" id="stat-day-bills">0 bills</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-card__label">Cash</p>
+        <p class="stat-card__value" id="stat-day-cash">₹0</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-card__label">UPI</p>
+        <p class="stat-card__value" id="stat-day-upi">₹0</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-card__label">Parcel vs Dine-in</p>
+        <p class="stat-card__value" id="stat-day-split" style="font-size:1.3rem;">0 / 0</p>
+      </div>
+    </div>
+
+    <div class="section-block">
+      <p class="section-title">Item-wise Sales</p>
+      <div id="day-item-report"></div>
+    </div>
+
+    <div class="section-block">
+      <p class="section-title">Bills</p>
+      <div class="table-scroll">
+        <table class="bill-table" id="day-bill-table">
+          <thead><tr><th>Bill #</th><th>Time</th><th>Type</th><th>Payment</th><th>Total</th></tr></thead>
+          <tbody id="day-bill-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- MONTHLY ---------- -->
+  <div class="report-panel" id="panel-monthly" style="display:none;">
+    <div class="month-picker-row">
+      <label for="month-picker">Month:</label>
+      <input type="month" id="month-picker">
+      <span class="loading-note" id="loading-note"></span>
+      <button class="pill-btn excel-btn" id="download-monthly-excel-btn">⬇ Download Monthly Report (Excel)</button>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <p class="stat-card__label">Monthly Revenue</p>
+        <p class="stat-card__value" id="stat-month-revenue">₹0</p>
+        <p class="stat-card__sub" id="stat-month-bills">0 bills</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-card__label">Cash / UPI (this month)</p>
+        <p class="stat-card__value" id="stat-month-split" style="font-size:1.3rem;">₹0 / ₹0</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-card__label">Total Customers Tracked</p>
+        <p class="stat-card__value" id="stat-customer-count">0</p>
+      </div>
+    </div>
+
+    <div class="section-block">
+      <p class="section-title">Item-wise Sales — <span id="item-report-month-label"></span></p>
+      <div id="item-report"></div>
+    </div>
+
+    <div class="section-block">
+      <p class="section-title">Daily Breakdown — <span id="daily-report-month-label"></span></p>
+      <p class="hint-text">Click any date to see that day in full detail.</p>
+      <div class="table-scroll">
+        <table class="daily-table" id="daily-table">
+          <thead>
+            <tr><th>Date</th><th class="num">Bills</th><th class="num">Cash</th><th class="num">UPI</th><th class="num">Total</th></tr>
+          </thead>
+          <tbody id="daily-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- YEARLY ---------- -->
+  <div class="report-panel" id="panel-yearly" style="display:none;">
+    <div class="month-picker-row">
+      <label for="year-picker">Year:</label>
+      <input type="number" id="year-picker" min="2020" max="2100" step="1">
+      <span class="loading-note" id="yearly-loading-note"></span>
+      <button class="pill-btn excel-btn" id="download-yearly-excel-btn">⬇ Download Yearly Report (Excel)</button>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <p class="stat-card__label">Yearly Revenue</p>
+        <p class="stat-card__value" id="stat-year-revenue">₹0</p>
+        <p class="stat-card__sub" id="stat-year-bills">0 bills</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-card__label">Cash</p>
+        <p class="stat-card__value" id="stat-year-cash">₹0</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-card__label">UPI</p>
+        <p class="stat-card__value" id="stat-year-upi">₹0</p>
+      </div>
+    </div>
+
+    <div class="section-block">
+      <p class="section-title">Item-wise Sales — <span id="item-report-year-label"></span></p>
+      <div id="year-item-report"></div>
+    </div>
+
+    <div class="section-block">
+      <p class="section-title">Monthly Breakdown — <span id="monthly-report-year-label"></span></p>
+      <p class="hint-text">Click any month to jump to it in the Monthly tab.</p>
+      <div class="table-scroll">
+        <table class="daily-table" id="monthly-breakdown-table">
+          <thead>
+            <tr><th>Month</th><th class="num">Bills</th><th class="num">Cash</th><th class="num">UPI</th><th class="num">Total</th></tr>
+          </thead>
+          <tbody id="monthly-breakdown-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- CUSTOMERS (always visible) ---------- -->
+  <div class="section-block">
+    <p class="section-title">Customer List</p>
+    <div class="search-row">
+      <input type="text" id="customer-search" placeholder="Search by name or phone...">
+    </div>
+    <div class="table-scroll">
+      <table class="cust-table" id="cust-table">
+        <thead>
+          <tr><th>Name</th><th>Phone</th><th>Visits</th><th>Total Spent</th><th>Loyalty Points</th><th>Last Visit</th></tr>
+        </thead>
+        <tbody id="cust-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, query, where, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDiB9xbeRHC91Pyvw1pr1odagfHck01dOA",
+    authDomain: "hotel-mathar-bhai-orders.firebaseapp.com",
+    projectId: "hotel-mathar-bhai-orders",
+    storageBucket: "hotel-mathar-bhai-orders.firebasestorage.app",
+    messagingSenderId: "106949196895",
+    appId: "1:106949196895:web:b320878772de39eab8afea"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let allCustomers = [];
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) { window.location.href = "pos-login.html"; return; }
+    document.getElementById("auth-gate").style.display = "none";
+    init();
+  });
+
+  document.getElementById("logout-btn").addEventListener("click", async () => {
+    await signOut(auth);
+    window.location.href = "pos-login.html";
+  });
+
+  const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function dayKeyOf(date) { return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`; }
+
+  // ---------- Tabs ----------
+  function switchTab(tab) {
+    ["daily", "monthly", "yearly"].forEach(t => {
+      document.getElementById("panel-" + t).style.display = t === tab ? "block" : "none";
+      document.getElementById("tab-" + t).classList.toggle("report-tab--active", t === tab);
+    });
+  }
+  document.getElementById("tab-daily").addEventListener("click", () => switchTab("daily"));
+  document.getElementById("tab-monthly").addEventListener("click", () => switchTab("monthly"));
+  document.getElementById("tab-yearly").addEventListener("click", () => switchTab("yearly"));
+
+  function init() {
+    const today = new Date();
+
+    // Daily tab
+    const datePicker = document.getElementById("date-picker");
+    datePicker.value = dayKeyOf(today);
+    datePicker.addEventListener("change", loadDailyReport);
+    loadDailyReport();
+
+    // Monthly tab
+    const monthPicker = document.getElementById("month-picker");
+    monthPicker.value = `${today.getFullYear()}-${pad(today.getMonth() + 1)}`;
+    monthPicker.addEventListener("change", loadMonthlyReport);
+    loadMonthlyReport();
+
+    // Yearly tab
+    const yearPicker = document.getElementById("year-picker");
+    yearPicker.value = today.getFullYear();
+    yearPicker.addEventListener("change", loadYearlyReport);
+    loadYearlyReport();
+
+    loadCustomers();
+
+    document.getElementById("customer-search").addEventListener("input", (e) => {
+      renderCustomerTable(filterCustomers(e.target.value));
+    });
+  }
+
+  // ---------- Shared item-wise report renderer ----------
+  function renderItemReportInto(containerId, bills, emptyMsg) {
+    const byCategory = {};
+    bills.forEach(b => {
+      (b.items || []).forEach(line => {
+        const category = line.category || "Other";
+        const name = line.name;
+        if (!byCategory[category]) byCategory[category] = {};
+        byCategory[category][name] = (byCategory[category][name] || 0) + (line.qty || 0);
+      });
+    });
+
+    const container = document.getElementById(containerId);
+    const categories = Object.keys(byCategory);
+
+    if (categories.length === 0) {
+      container.innerHTML = `<div class="empty-state">${emptyMsg}</div>`;
+      return;
+    }
+
+    container.innerHTML = categories.map(category => {
+      const items = Object.entries(byCategory[category]).sort((a, b) => b[1] - a[1]);
+      const rows = items.map(([name, qty]) => `
+        <div class="report-item">
+          <span class="report-item__name">${name}</span>
+          <span class="report-item__qty">${qty} sold</span>
+        </div>
+      `).join("");
+      return `
+        <div class="report-category">
+          <p class="report-category__label">${category}</p>
+          <div class="report-grid">${rows}</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function billRowsHtml(bills) {
+    const sorted = [...bills].sort((a, b) => (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0));
+    return sorted.map(b => {
+      const time = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—";
+      return `
+        <tr>
+          <td>#${b.billNo}</td>
+          <td>${time}</td>
+          <td><span class="tag ${b.type === "parcel" ? "tag--parcel" : "tag--dinein"}">${b.type === "parcel" ? "Parcel" : "Dine-in"}</span></td>
+          <td><span class="tag ${b.paymentMethod === "cash" ? "tag--cash" : "tag--upi"}">${(b.paymentMethod || "").toUpperCase()}</span></td>
+          <td>₹${b.total}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  // ---------- DAILY ----------
+  let currentDayBills = [];
+  let currentDayKey = null;
+
+  async function loadDailyReport() {
+    const note = document.getElementById("daily-loading-note");
+    note.textContent = "Loading…";
+
+    const dateStr = document.getElementById("date-picker").value;
+    if (!dateStr) return;
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const startOfDay = Timestamp.fromDate(new Date(y, m - 1, d));
+    const startOfNextDay = Timestamp.fromDate(new Date(y, m - 1, d + 1));
+
+    try {
+      const billsQuery = query(
+        collection(db, "bills"),
+        where("createdAt", ">=", startOfDay),
+        where("createdAt", "<", startOfNextDay)
+      );
+      const snapshot = await getDocs(billsQuery);
+      currentDayBills = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      currentDayKey = dateStr;
+
+      let total = 0, cash = 0, upi = 0, parcelCount = 0, dineinCount = 0;
+      currentDayBills.forEach(b => {
+        total += b.total || 0;
+        if (b.paymentMethod === "cash") cash += b.total || 0;
+        if (b.paymentMethod === "upi") upi += b.total || 0;
+        if (b.type === "parcel") parcelCount++;
+        if (b.type === "dinein") dineinCount++;
+      });
+
+      document.getElementById("stat-day-revenue").textContent = "₹" + total;
+      document.getElementById("stat-day-bills").textContent = currentDayBills.length + " bill" + (currentDayBills.length === 1 ? "" : "s");
+      document.getElementById("stat-day-cash").textContent = "₹" + cash;
+      document.getElementById("stat-day-upi").textContent = "₹" + upi;
+      document.getElementById("stat-day-split").textContent = `${parcelCount} / ${dineinCount}`;
+
+      renderItemReportInto("day-item-report", currentDayBills, "No items sold this day.");
+
+      const tbody = document.getElementById("day-bill-table-body");
+      tbody.innerHTML = currentDayBills.length === 0
+        ? `<tr><td colspan="5"><div class="empty-state">No sales recorded this day.</div></td></tr>`
+        : billRowsHtml(currentDayBills);
+    } catch (err) {
+      console.error(err);
+      note.textContent = "Error loading — check console.";
+      return;
+    }
+    note.textContent = "";
+  }
+
+  function goToDailyTab(dayKey) {
+    document.getElementById("date-picker").value = dayKey;
+    switchTab("daily");
+    loadDailyReport();
+  }
+  window.goToDailyTab = goToDailyTab;
+
+  // ---------- MONTHLY ----------
+  let currentMonthBills = [];
+
+  async function loadMonthlyReport() {
+    const loadingNote = document.getElementById("loading-note");
+    loadingNote.textContent = "Loading…";
+
+    const [yearStr, monthStr] = document.getElementById("month-picker").value.split("-");
+    const year = parseInt(yearStr);
+    const month = parseInt(monthStr); // 1-indexed
+
+    document.getElementById("item-report-month-label").textContent = `${MONTH_NAMES[month - 1]} ${year}`;
+    document.getElementById("daily-report-month-label").textContent = `${MONTH_NAMES[month - 1]} ${year}`;
+
+    const startOfMonth = Timestamp.fromDate(new Date(year, month - 1, 1));
+    const startOfNextMonth = Timestamp.fromDate(new Date(year, month, 1));
+
+    try {
+      const billsQuery = query(
+        collection(db, "bills"),
+        where("createdAt", ">=", startOfMonth),
+        where("createdAt", "<", startOfNextMonth)
+      );
+      const snapshot = await getDocs(billsQuery);
+      currentMonthBills = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      const monthTotal = currentMonthBills.reduce((sum, b) => sum + (b.total || 0), 0);
+      const monthCash = currentMonthBills.filter(b => b.paymentMethod === "cash").reduce((sum, b) => sum + (b.total || 0), 0);
+      const monthUpi = currentMonthBills.filter(b => b.paymentMethod === "upi").reduce((sum, b) => sum + (b.total || 0), 0);
+
+      document.getElementById("stat-month-revenue").textContent = "₹" + monthTotal;
+      document.getElementById("stat-month-bills").textContent = currentMonthBills.length + " bill" + (currentMonthBills.length === 1 ? "" : "s");
+      document.getElementById("stat-month-split").textContent = `₹${monthCash} / ₹${monthUpi}`;
+
+      renderItemReportInto("item-report", currentMonthBills, "No items sold this month.");
+      renderDailyBreakdown(currentMonthBills);
+    } catch (err) {
+      console.error(err);
+      loadingNote.textContent = "Error loading report — check console.";
+      return;
+    }
+    loadingNote.textContent = "";
+  }
+
+  function renderDailyBreakdown(monthBills) {
+    const byDay = {};
+    monthBills.forEach(b => {
+      if (!b.createdAt || !b.createdAt.toDate) return;
+      const key = dayKeyOf(b.createdAt.toDate());
+      if (!byDay[key]) byDay[key] = { bills: 0, cash: 0, upi: 0, total: 0 };
+      byDay[key].bills += 1;
+      byDay[key].total += b.total || 0;
+      if (b.paymentMethod === "cash") byDay[key].cash += b.total || 0;
+      if (b.paymentMethod === "upi") byDay[key].upi += b.total || 0;
+    });
+
+    const tbody = document.getElementById("daily-table-body");
+    const days = Object.keys(byDay).sort().reverse();
+
+    if (days.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">No sales recorded this month.</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = days.map(dayKey => {
+      const d = byDay[dayKey];
+      const displayDate = new Date(dayKey + "T00:00:00").toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
+      return `
+        <tr class="day-row" onclick="goToDailyTab('${dayKey}')">
+          <td>${displayDate}</td>
+          <td class="num">${d.bills}</td>
+          <td class="num">₹${d.cash}</td>
+          <td class="num">₹${d.upi}</td>
+          <td class="num"><strong>₹${d.total}</strong></td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  // ---------- YEARLY ----------
+  let currentYearBills = [];
+
+  async function loadYearlyReport() {
+    const note = document.getElementById("yearly-loading-note");
+    note.textContent = "Loading…";
+
+    const year = parseInt(document.getElementById("year-picker").value);
+    if (!year) return;
+
+    document.getElementById("item-report-year-label").textContent = year;
+    document.getElementById("monthly-report-year-label").textContent = year;
+
+    const startOfYear = Timestamp.fromDate(new Date(year, 0, 1));
+    const startOfNextYear = Timestamp.fromDate(new Date(year + 1, 0, 1));
+
+    try {
+      const billsQuery = query(
+        collection(db, "bills"),
+        where("createdAt", ">=", startOfYear),
+        where("createdAt", "<", startOfNextYear)
+      );
+      const snapshot = await getDocs(billsQuery);
+      currentYearBills = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      let total = 0, cash = 0, upi = 0;
+      currentYearBills.forEach(b => {
+        total += b.total || 0;
+        if (b.paymentMethod === "cash") cash += b.total || 0;
+        if (b.paymentMethod === "upi") upi += b.total || 0;
+      });
+
+      document.getElementById("stat-year-revenue").textContent = "₹" + total;
+      document.getElementById("stat-year-bills").textContent = currentYearBills.length + " bill" + (currentYearBills.length === 1 ? "" : "s");
+      document.getElementById("stat-year-cash").textContent = "₹" + cash;
+      document.getElementById("stat-year-upi").textContent = "₹" + upi;
+
+      renderItemReportInto("year-item-report", currentYearBills, "No items sold this year.");
+      renderMonthlyBreakdown(currentYearBills, year);
+    } catch (err) {
+      console.error(err);
+      note.textContent = "Error loading — check console.";
+      return;
+    }
+    note.textContent = "";
+  }
+
+  function renderMonthlyBreakdown(yearBills, year) {
+    const byMonth = {}; // 0-11 -> { bills, cash, upi, total }
+    yearBills.forEach(b => {
+      if (!b.createdAt || !b.createdAt.toDate) return;
+      const m = b.createdAt.toDate().getMonth();
+      if (!byMonth[m]) byMonth[m] = { bills: 0, cash: 0, upi: 0, total: 0 };
+      byMonth[m].bills += 1;
+      byMonth[m].total += b.total || 0;
+      if (b.paymentMethod === "cash") byMonth[m].cash += b.total || 0;
+      if (b.paymentMethod === "upi") byMonth[m].upi += b.total || 0;
+    });
+
+    const tbody = document.getElementById("monthly-breakdown-table-body");
+    const months = Object.keys(byMonth).map(Number).sort((a, b) => b - a); // most recent first
+
+    if (months.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">No sales recorded this year.</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = months.map(m => {
+      const d = byMonth[m];
+      return `
+        <tr class="month-row" onclick="goToMonthlyTab(${year}, ${m + 1})">
+          <td>${MONTH_NAMES[m]}</td>
+          <td class="num">${d.bills}</td>
+          <td class="num">₹${d.cash}</td>
+          <td class="num">₹${d.upi}</td>
+          <td class="num"><strong>₹${d.total}</strong></td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  function goToMonthlyTab(year, month) {
+    document.getElementById("month-picker").value = `${year}-${pad(month)}`;
+    switchTab("monthly");
+    loadMonthlyReport();
+  }
+  window.goToMonthlyTab = goToMonthlyTab;
+
+  // ---------- Customers ----------
+  async function loadCustomers() {
+    try {
+      const snapshot = await getDocs(collection(db, "customers"));
+      allCustomers = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      allCustomers.sort((a, b) => (b.totalSpent || 0) - (a.totalSpent || 0));
+      document.getElementById("stat-customer-count").textContent = allCustomers.length;
+      renderCustomerTable(allCustomers);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function filterCustomers(term) {
+    const t = term.trim().toLowerCase();
+    if (!t) return allCustomers;
+    return allCustomers.filter(c =>
+      (c.name || "").toLowerCase().includes(t) || (c.phone || "").includes(t)
+    );
+  }
+
+  function renderCustomerTable(customers) {
+    const tbody = document.getElementById("cust-table-body");
+    if (customers.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">No customers recorded yet.</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = customers.map(c => {
+      const lastVisit = c.lastVisit && c.lastVisit.toDate
+        ? c.lastVisit.toDate().toLocaleDateString()
+        : "—";
+      return `
+        <tr>
+          <td>${c.name || "—"}</td>
+          <td>${c.phone || "—"}</td>
+          <td>${c.visitCount || 0}</td>
+          <td>₹${c.totalSpent || 0}</td>
+          <td>${c.loyaltyPoints || 0}</td>
+          <td>${lastVisit}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  // ---------- Excel export: shared sheet builders ----------
+  function buildSummarySheet(rows) { return XLSX.utils.json_to_sheet(rows, { skipHeader: true }); }
+
+  function buildItemSheet(bills) {
+    const itemMap = {};
+    bills.forEach(b => {
+      (b.items || []).forEach(l => {
+        const key = (l.category || "Other") + "|" + l.name;
+        if (!itemMap[key]) itemMap[key] = { Category: l.category || "Other", Item: l.name, "Qty Sold": 0, "Revenue (₹)": 0 };
+        itemMap[key]["Qty Sold"] += l.qty || 0;
+        itemMap[key]["Revenue (₹)"] += l.lineTotal || 0;
+      });
+    });
+    const rows = Object.values(itemMap).sort((a, b) => b["Qty Sold"] - a["Qty Sold"]);
+    return XLSX.utils.json_to_sheet(rows);
+  }
+
+  function buildBillsSheet(bills) {
+    const rows = bills.map(b => ({
+      "Bill #": b.billNo,
+      Time: b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().toLocaleString() : "",
+      Type: b.type === "parcel" ? "Parcel" : "Dine-in",
+      Payment: (b.paymentMethod || "").toUpperCase(),
+      "Total (₹)": b.total,
+      Customer: b.customerName || "",
+      Phone: b.customerPhone || ""
+    }));
+    return XLSX.utils.json_to_sheet(rows);
+  }
+
+  // ---------- Daily export ----------
+  document.getElementById("download-daily-excel-btn").addEventListener("click", () => {
+    if (currentDayBills.length === 0) { alert("No sales recorded this day — nothing to export."); return; }
+
+    let total = 0, cash = 0, upi = 0;
+    currentDayBills.forEach(b => {
+      total += b.total || 0;
+      if (b.paymentMethod === "cash") cash += b.total || 0;
+      if (b.paymentMethod === "upi") upi += b.total || 0;
+    });
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, buildSummarySheet([
+      { Metric: "Date", Value: currentDayKey },
+      { Metric: "Total Sales (₹)", Value: total },
+      { Metric: "Cash (₹)", Value: cash },
+      { Metric: "UPI (₹)", Value: upi },
+      { Metric: "Number of Bills", Value: currentDayBills.length }
+    ]), "Summary");
+    XLSX.utils.book_append_sheet(wb, buildItemSheet(currentDayBills), "Item-wise Sales");
+    XLSX.utils.book_append_sheet(wb, buildBillsSheet(currentDayBills), "Bills");
+
+    XLSX.writeFile(wb, `Hotel-Mathar-Bhai-Daily-Report-${currentDayKey}.xlsx`);
+  });
+
+  // ---------- Monthly export ----------
+  document.getElementById("download-monthly-excel-btn").addEventListener("click", () => {
+    if (currentMonthBills.length === 0) { alert("No sales recorded for this month — nothing to export."); return; }
+
+    const [yearStr, monthStr] = document.getElementById("month-picker").value.split("-");
+    const year = parseInt(yearStr), month = parseInt(monthStr);
+    const monthLabel = `${MONTH_NAMES[month - 1]} ${year}`;
+
+    let total = 0, cash = 0, upi = 0;
+    currentMonthBills.forEach(b => {
+      total += b.total || 0;
+      if (b.paymentMethod === "cash") cash += b.total || 0;
+      if (b.paymentMethod === "upi") upi += b.total || 0;
+    });
+
+    const byDay = {};
+    currentMonthBills.forEach(b => {
+      if (!b.createdAt || !b.createdAt.toDate) return;
+      const key = dayKeyOf(b.createdAt.toDate());
+      if (!byDay[key]) byDay[key] = { Date: key, Bills: 0, "Cash (₹)": 0, "UPI (₹)": 0, "Total (₹)": 0 };
+      byDay[key].Bills += 1;
+      byDay[key]["Total (₹)"] += b.total || 0;
+      if (b.paymentMethod === "cash") byDay[key]["Cash (₹)"] += b.total || 0;
+      if (b.paymentMethod === "upi") byDay[key]["UPI (₹)"] += b.total || 0;
+    });
+    const dailySheet = XLSX.utils.json_to_sheet(Object.values(byDay).sort((a, b) => a.Date.localeCompare(b.Date)));
+
+    const customerRows = allCustomers.map(c => ({
+      Name: c.name || "", Phone: c.phone || "", Visits: c.visitCount || 0,
+      "Total Spent (₹)": c.totalSpent || 0, "Loyalty Points": c.loyaltyPoints || 0,
+      "Last Visit": c.lastVisit && c.lastVisit.toDate ? c.lastVisit.toDate().toLocaleDateString() : ""
+    }));
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, buildSummarySheet([
+      { Metric: "Month", Value: monthLabel },
+      { Metric: "Total Sales (₹)", Value: total },
+      { Metric: "Cash (₹)", Value: cash },
+      { Metric: "UPI (₹)", Value: upi },
+      { Metric: "Number of Bills", Value: currentMonthBills.length }
+    ]), "Summary");
+    XLSX.utils.book_append_sheet(wb, buildItemSheet(currentMonthBills), "Item-wise Sales");
+    XLSX.utils.book_append_sheet(wb, dailySheet, "Daily Breakdown");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(customerRows), "Customers");
+
+    XLSX.writeFile(wb, `Hotel-Mathar-Bhai-Report-${monthLabel.replace(" ", "-")}.xlsx`);
+  });
+
+  // ---------- Yearly export ----------
+  document.getElementById("download-yearly-excel-btn").addEventListener("click", () => {
+    if (currentYearBills.length === 0) { alert("No sales recorded for this year — nothing to export."); return; }
+
+    const year = document.getElementById("year-picker").value;
+
+    let total = 0, cash = 0, upi = 0;
+    currentYearBills.forEach(b => {
+      total += b.total || 0;
+      if (b.paymentMethod === "cash") cash += b.total || 0;
+      if (b.paymentMethod === "upi") upi += b.total || 0;
+    });
+
+    const byMonth = {};
+    currentYearBills.forEach(b => {
+      if (!b.createdAt || !b.createdAt.toDate) return;
+      const m = b.createdAt.toDate().getMonth();
+      if (!byMonth[m]) byMonth[m] = { Month: MONTH_NAMES[m], Bills: 0, "Cash (₹)": 0, "UPI (₹)": 0, "Total (₹)": 0 };
+      byMonth[m].Bills += 1;
+      byMonth[m]["Total (₹)"] += b.total || 0;
+      if (b.paymentMethod === "cash") byMonth[m]["Cash (₹)"] += b.total || 0;
+      if (b.paymentMethod === "upi") byMonth[m]["UPI (₹)"] += b.total || 0;
+    });
+    const monthlySheet = XLSX.utils.json_to_sheet(
+      Object.keys(byMonth).map(Number).sort((a, b) => a - b).map(m => byMonth[m])
+    );
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, buildSummarySheet([
+      { Metric: "Year", Value: year },
+      { Metric: "Total Sales (₹)", Value: total },
+      { Metric: "Cash (₹)", Value: cash },
+      { Metric: "UPI (₹)", Value: upi },
+      { Metric: "Number of Bills", Value: currentYearBills.length }
+    ]), "Summary");
+    XLSX.utils.book_append_sheet(wb, buildItemSheet(currentYearBills), "Item-wise Sales");
+    XLSX.utils.book_append_sheet(wb, monthlySheet, "Monthly Breakdown");
+
+    XLSX.writeFile(wb, `Hotel-Mathar-Bhai-Yearly-Report-${year}.xlsx`);
+  });
+</script>
+
+</body>
+</html>
