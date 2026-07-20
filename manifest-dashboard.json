@@ -1,0 +1,16 @@
+{
+  "name": "Hotel Mathar Bhai - Dashboard",
+  "short_name": "HMB Dashboard",
+  "description": "Sales dashboard, reports, and menu management for Hotel Mathar Bhai",
+  "start_url": "dashboard.html",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#241A14",
+  "theme_color": "#241A14",
+  "icons": [
+    { "src": "icons/icon-dashboard-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-dashboard-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-dashboard-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Hotel Mathar Bhai - POS",
+  "short_name": "HMB POS",
+  "description": "Billing app for Hotel Mathar Bhai staff",
+  "start_url": "pos.html",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#241A14",
+  "theme_color": "#241A14",
+  "icons": [
+    { "src": "icons/icon-pos-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-pos-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-pos-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
