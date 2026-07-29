@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hotel Mathar Bhai — POS</title>
+<link rel="manifest" href="manifest-pos.json">
+<meta name="theme-color" content="#241A14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HMB POS">
+<link rel="apple-touch-icon" href="icons/icon-pos-192.png">
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch(console.error);
+    });
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Karla:wght@400;500;700&family=Space+Mono:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
@@ -35,11 +48,21 @@
   .pill-btn--active { border-color: var(--saffron); color: var(--saffron); background: rgba(227,168,59,0.08); }
 
   .layout { display: grid; grid-template-columns: 1fr 260px 380px; height: calc(100vh - 66px); overflow: hidden; }
+
+  /* Tablet tier (roughly 641px–1150px): keep the multi-panel layout used on
+     desktop — just drop to two columns with the custom-item panel moved to
+     the top, since 3 fixed-width columns get too cramped below ~1150px.
+     This is what real tablets (iPad, Android tablets) land in, in either
+     orientation, so they get the same fixed side-panel experience as a
+     laptop — not the stacked phone layout below. */
   @media (max-width: 1150px) {
     .layout { grid-template-columns: 1fr 380px; }
     .custom-panel { grid-column: 1 / -1; height: auto; border-left: none; border-top: 1px solid var(--clay); }
   }
-  @media (max-width: 900px) {
+
+  /* Phone tier only — genuinely narrow screens. Real tablets are all wider
+     than this, so they never hit this collapse. */
+  @media (max-width: 640px) {
     .topbar { flex-direction: column; align-items: flex-start; }
     .topbar__right { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
     html, body { height: auto; overflow-y: auto; -webkit-overflow-scrolling: touch; }
@@ -53,7 +76,7 @@
     .item-grid { grid-template-columns: 1fr; }
     .mobile-checkout-bar { display: flex; }
   }
-  @media (max-width: 480px) {
+  @media (max-width: 420px) {
     .order-type-row { flex-direction: column; }
     .payment-row { flex-wrap: wrap; }
   }
@@ -93,6 +116,15 @@
     font-size: 0.95rem; cursor: pointer;
   }
   .order-type-btn--active { border-color: var(--ember); background: rgba(178,58,46,0.15); color: var(--saffron); }
+
+  .table-lookup-row {
+    display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.25rem; flex-wrap: wrap;
+  }
+  .table-lookup-row input {
+    width: 140px; padding: 0.65rem 0.8rem; border-radius: 10px; border: 1.5px solid var(--clay);
+    background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 0.9rem;
+  }
+  #table-lookup-status { font-family: var(--font-mono); font-size: 0.78rem; color: var(--saffron); }
 
   .custom-item-btn {
     flex-shrink: 0; padding: 0.8rem 1.1rem; border-radius: 12px; border: 2px dashed var(--saffron);
@@ -316,6 +348,11 @@
       <button class="order-type-btn order-type-btn--active" id="type-parcel">📦 Parcel</button>
       <button class="order-type-btn" id="type-dinein">🍽 Dine-in</button>
     </div>
+    <div class="table-lookup-row" id="table-lookup-row" style="display:none;">
+      <input type="text" id="pos-table-number" placeholder="Table number" inputmode="numeric">
+      <button class="pill-btn" id="load-table-order-btn">Load Table Order</button>
+      <span id="table-lookup-status"></span>
+    </div>
     <div id="category-tabs"></div>
     <div id="menu-empty-notice" style="display:none; text-align:center; color:var(--clay); font-family:var(--font-mono); font-size:0.85rem; padding:2rem 1rem;">
       No menu items yet. Ask a manager to add dishes via <strong style="color:var(--saffron);">Dashboard → Manage Menu</strong>.
@@ -355,6 +392,7 @@
       <input type="text" id="customer-name" class="customer-input" placeholder="Customer name (optional)">
       <input type="tel" id="customer-phone" class="customer-input" placeholder="Phone number (optional)" style="margin-top: 0.5rem;">
       <div id="loyalty-status" style="display:none;"></div>
+      <textarea id="order-instructions" class="customer-input" placeholder="Special instructions for the kitchen (optional) — e.g. no onions, extra spicy" style="margin-top: 0.5rem; min-height: 50px; resize: vertical; font-family: var(--font-body);"></textarea>
     </div>
 
     <button class="primary-btn" id="checkout-btn">Generate &amp; Print Bill</button>
@@ -392,7 +430,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, collection, addDoc, doc, runTransaction, onSnapshot, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, doc, runTransaction, onSnapshot, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDiB9xbeRHC91Pyvw1pr1odagfHck01dOA",
@@ -415,6 +453,7 @@
   window.__runTransaction = runTransaction;
   window.__onSnapshot = onSnapshot;
   window.__getDoc = getDoc;
+  window.__updateDoc = updateDoc;
   window.__serverTimestamp = serverTimestamp;
   window.__firebaseReady = true;
 
@@ -445,6 +484,7 @@
   let heldBills = []; // [{ id, label, orderType, paymentMethod, bill, customItems, customerName, customerPhone }]
   let lookedUpPoints = 0; // current customer's known point balance, from last phone lookup
   let redeemedThisBill = false; // whether a redemption has been applied to the current bill
+  let sourceTableOrderId = null; // set when a captain's table order was loaded into this bill
   let printerCharacteristic = null;
 
   // ---------- Menu rendering ----------
@@ -590,6 +630,7 @@
     orderType = type;
     document.getElementById("type-parcel").classList.toggle("order-type-btn--active", type === "parcel");
     document.getElementById("type-dinein").classList.toggle("order-type-btn--active", type === "dinein");
+    document.getElementById("table-lookup-row").style.display = type === "dinein" ? "flex" : "none";
   }
   function setPaymentMethod(method) {
     paymentMethod = method;
@@ -613,6 +654,10 @@
     customItems.length = 0;
     document.getElementById("customer-name").value = "";
     document.getElementById("customer-phone").value = "";
+    document.getElementById("order-instructions").value = "";
+    document.getElementById("pos-table-number").value = "";
+    document.getElementById("table-lookup-status").textContent = "";
+    sourceTableOrderId = null;
     setOrderType("parcel");
     setPaymentMethod("cash");
     lookedUpPoints = 0;
@@ -621,6 +666,55 @@
     renderMenuItems();
     renderBill();
   }
+
+  // ---------- Load a captain's table order into the current bill ----------
+  async function loadTableOrder() {
+    const tableNumber = document.getElementById("pos-table-number").value.trim();
+    const statusEl = document.getElementById("table-lookup-status");
+    if (!tableNumber) { showToast("Enter a table number first."); return; }
+    if (!window.__firebaseReady) { showToast("Connection not ready — try again in a moment."); return; }
+
+    statusEl.textContent = "Loading…";
+    try {
+      const docRef = window.__doc(window.__db, "orders", "table-" + tableNumber);
+      const snap = await window.__getDoc(docRef);
+
+      if (!snap.exists() || snap.data().billed === true) {
+        statusEl.textContent = "No open order for this table — add items manually below.";
+        sourceTableOrderId = null;
+        return;
+      }
+
+      const data = snap.data();
+      Object.keys(bill).forEach(k => delete bill[k]);
+      customItems.length = 0;
+
+      (data.items || []).forEach(line => {
+        const menuItem = MENU.find(i => i.name === line.name);
+        if (menuItem) {
+          bill[menuItem.id] = (bill[menuItem.id] || 0) + line.qty;
+        } else {
+          // item no longer in the live menu (or was custom/redeemed) — preserve it as a custom line
+          customItems.push({ id: "table-line-" + Date.now() + Math.random(), name: line.name, price: line.price, qty: line.qty });
+        }
+      });
+
+      sourceTableOrderId = "table-" + tableNumber;
+      if (data.waiterName) statusEl.textContent = `Loaded — ${data.items.length} item type(s), waiter: ${data.waiterName}.`;
+      else statusEl.textContent = `Loaded — ${data.items.length} item type(s).`;
+
+      renderMenuItems();
+      renderBill();
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = "Could not load this table — check your connection.";
+    }
+  }
+
+  document.getElementById("load-table-order-btn").addEventListener("click", loadTableOrder);
+  document.getElementById("pos-table-number").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); loadTableOrder(); }
+  });
 
   function holdCurrentBill(silent) {
     if (currentBillIsEmpty()) {
@@ -636,7 +730,10 @@
       bill: { ...bill },
       customItems: customItems.map(ci => ({ ...ci })),
       customerName: name,
-      customerPhone: document.getElementById("customer-phone").value.trim()
+      customerPhone: document.getElementById("customer-phone").value.trim(),
+      instructions: document.getElementById("order-instructions").value.trim(),
+      tableNumber: document.getElementById("pos-table-number").value.trim(),
+      sourceTableOrderId
     };
     heldBills.push(snapshot);
     resetCurrentBill();
@@ -1133,15 +1230,33 @@
         createdAt: window.__serverTimestamp()
       });
 
+      const instructions = document.getElementById("order-instructions").value.trim();
+
       // Parcel orders also go to the KOT board — same number as the bill, so staff see one consistent number
       if (orderType === "parcel") {
         await window.__addDoc(window.__collection(window.__db, "orders"), {
           token: billNo,
+          type: "parcel",
+          billed: false,
           items: lines,
           total,
+          instructions: instructions || null,
           status: "new",
           placedAt: window.__serverTimestamp()
         });
+      }
+
+      // Dine-in: if this bill came from a captain's table order, close that table out —
+      // removes it from the KOT board and frees the table for the captain's next order
+      if (orderType === "dinein" && sourceTableOrderId) {
+        try {
+          await window.__updateDoc(window.__doc(window.__db, "orders", sourceTableOrderId), {
+            billed: true,
+            status: "done"
+          });
+        } catch (closeErr) {
+          console.error("Could not close out table order (bill still saved):", closeErr);
+        }
       }
 
       // Print, if a printer is connected — but don't block the sale record on it
@@ -1170,6 +1285,10 @@
       customItems.length = 0;
       document.getElementById("customer-name").value = "";
       document.getElementById("customer-phone").value = "";
+      document.getElementById("order-instructions").value = "";
+      document.getElementById("pos-table-number").value = "";
+      document.getElementById("table-lookup-status").textContent = "";
+      sourceTableOrderId = null;
       lookedUpPoints = 0;
       redeemedThisBill = false;
       document.getElementById("loyalty-status").style.display = "none";

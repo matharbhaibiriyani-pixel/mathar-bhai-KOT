@@ -255,6 +255,20 @@
   .empty-cart { text-align: center; color: var(--cream-dim); padding: 3rem 1rem; font-size: 0.9rem; }
   .empty-cart__icon { font-size: 2.2rem; margin-bottom: 0.75rem; opacity: 0.6; }
 
+  .customer-form { background: var(--paper); border-radius: 14px; padding: 1.1rem 1.2rem; margin-top: 1rem; }
+  .customer-form__label {
+    font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--clay); margin: 0 0 0.7rem;
+  }
+  .customer-form__field { margin-bottom: 0.7rem; }
+  .customer-form__field:last-child { margin-bottom: 0; }
+  .customer-form__field input {
+    width: 100%; padding: 0.65rem 0.8rem; border-radius: 10px; border: 1.5px solid #DCCBA8;
+    background: #fff; color: var(--ink); font-family: var(--font-body); font-size: 0.92rem;
+  }
+  .customer-form__field input:focus { outline: none; border-color: var(--ember); }
+  .customer-form__hint { font-size: 0.75rem; color: var(--clay); margin: 0.5rem 0 0; }
+
   .bottom-bar {
     position: sticky; bottom: 0; left: 0; right: 0;
     background: var(--ink-soft); border-top: 1px solid var(--clay);
@@ -323,6 +337,15 @@
     <div class="cart-body">
       <h2 class="cart-title">Your order</h2>
       <div id="cart-contents"></div>
+      <div class="customer-form" id="customer-form" style="display:none;">
+        <p class="customer-form__label">Get updates on offers (optional)</p>
+        <div class="customer-form__field">
+          <input type="text" id="customer-name" placeholder="Your name">
+        </div>
+        <div class="customer-form__field">
+          <input type="tel" id="customer-phone" placeholder="Phone number">
+        </div>
+      </div>
     </div>
   </div>
 
@@ -349,7 +372,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, setDoc, doc, increment, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDiB9xbeRHC91Pyvw1pr1odagfHck01dOA",
@@ -365,54 +388,18 @@
   window.__db = db;
   window.__collection = collection;
   window.__addDoc = addDoc;
+  window.__setDoc = setDoc;
+  window.__doc = doc;
+  window.__increment = increment;
+  window.__onSnapshot = onSnapshot;
   window.__serverTimestamp = serverTimestamp;
   window.__firebaseReady = true;
 </script>
 
 <script>
-  // ---------- Menu data ----------
-  const CATEGORIES = ["பிரியாணி","சைனீஸ்","புரோட்டா","சப்பாத்தி","இடியாப்பம்","பீஃப்","சிக்கன்","குடல் & சூப்","முட்டை"];
-
-  const MENU = [
-    { id: "chicken-biriyani", category: "பிரியாணி", name: "சிக்கன் பிரியாணி", price: 130 },
-    { id: "beef-biriyani", category: "பிரியாணி", name: "பீஃப் பிரியாணி", price: 150 },
-    { id: "empty-biriyani", category: "பிரியாணி", name: "MT பிரியாணி", price: 110 },
-    { id: "chicken-fried-rice", category: "சைனீஸ்", name: "சிக்கன் ஃப்ரைடு ரைஸ்", price: 130 },
-    { id: "egg-fried-rice", category: "சைனீஸ்", name: "Egg ஃப்ரைடு ரைஸ்", price: 110 },
-    { id: "veg-fried-rice", category: "சைனீஸ்", name: "Veg ஃப்ரைடு ரைஸ்", price: 110 },
-    { id: "beef-fried-rice", category: "சைனீஸ்", name: "பீஃப் ஃப்ரைடு ரைஸ்", price: 150 },
-    { id: "chicken-noodles", category: "சைனீஸ்", name: "சிக்கன் நூடுல்ஸ்", price: 130 },
-    { id: "beef-noodles", category: "சைனீஸ்", name: "பீஃப் நூடுல்ஸ்", price: 150 },
-    { id: "egg-noodles", category: "சைனீஸ்", name: "Egg நூடுல்ஸ்", price: 110 },
-    { id: "veg-noodles", category: "சைனீஸ்", name: "Veg நூடுல்ஸ்", price: 110 },
-    { id: "porotta", category: "புரோட்டா", name: "புரோட்டா", price: 15 },
-    { id: "egg-kothu-porotta", category: "புரோட்டா", name: "Egg கொத்து புரோட்டா", price: 120 },
-    { id: "chicken-kothu-porotta", category: "புரோட்டா", name: "சிக்கன் கொத்து புரோட்டா", price: 160 },
-    { id: "beef-kothu-porotta", category: "புரோட்டா", name: "பீஃப் கொத்து புரோட்டா", price: 160 },
-    { id: "chapati", category: "சப்பாத்தி", name: "சப்பாத்தி", price: 15 },
-    { id: "egg-kothu-chapati", category: "சப்பாத்தி", name: "Egg கொத்து சப்பாத்தி", price: 120 },
-    { id: "chicken-kothu-chapati", category: "சப்பாத்தி", name: "சிக்கன் கொத்து சப்பாத்தி", price: 160 },
-    { id: "beef-kothu-chapati", category: "சப்பாத்தி", name: "பீஃப் கொத்து சப்பாத்தி", price: 160 },
-    { id: "idiyappam", category: "இடியாப்பம்", name: "இடியாப்பம்", price: 15 },
-    { id: "egg-kothu-idiyappam", category: "இடியாப்பம்", name: "Egg கொத்து இடியாப்பம்", price: 130 },
-    { id: "chicken-kothu-idiyappam", category: "இடியாப்பம்", name: "சிக்கன் கொத்து இடியாப்பம்", price: 170 },
-    { id: "beef-pakora", category: "பீஃப்", name: "பீஃப் பக்கோடா (100g)", price: 90 },
-    { id: "beef-roast", category: "பீஃப்", name: "பீஃப் ரோஸ்ட்", price: 120 },
-    { id: "beef-gravy", category: "பீஃப்", name: "பீஃப் கிரேவி", price: 150 },
-    { id: "beef-pepper-roast", category: "பீஃப்", name: "பீஃப் Pepper ரோஸ்ட்", price: 140 },
-    { id: "beef-pepper-gravy", category: "பீஃப்", name: "பீஃப் Pepper கிரேவி", price: 170 },
-    { id: "chicken-65", category: "சிக்கன்", name: "சிக்கன் 65 (100g)", price: 80 },
-    { id: "chicken-chilli-gravy", category: "சிக்கன்", name: "சிக்கன் சில்லி கிரேவி", price: 110 },
-    { id: "chilli-chicken", category: "சிக்கன்", name: "சில்லி சிக்கன்", price: 140 },
-    { id: "pepper-chicken", category: "சிக்கன்", name: "Pepper சிக்கன்", price: 140 },
-    { id: "kudal-fry", category: "குடல் & சூப்", name: "குடல் ஃப்ரை", price: 80 },
-    { id: "mattu-vaal-soup", category: "குடல் & சூப்", name: "மாட்டு வால் சூப்", price: 20 },
-    { id: "omelette", category: "முட்டை", name: "ஆம்லெட்", price: 20 },
-    { id: "full-boil", category: "முட்டை", name: "ஃபுல் பாயில்", price: 15 },
-    { id: "half-boil", category: "முட்டை", name: "ஆஃப் பாயில்", price: 15 },
-    { id: "kalakki", category: "முட்டை", name: "கலக்கி", price: 20 },
-    { id: "mutta-poriyal", category: "முட்டை", name: "முட்டை பொரியல்", price: 30 }
-  ];
+  // ---------- Menu data — loaded live from Firestore, managed via menu-admin.html ----------
+  let CATEGORIES = [];
+  let MENU = [];
 
   function formatPrice(n) { return "\u20B9" + n; }
 
@@ -524,6 +511,7 @@
   function renderCart() {
     const container = document.getElementById("cart-contents");
     const entries = Object.entries(cart).filter(([, qty]) => qty > 0);
+    const customerForm = document.getElementById("customer-form");
 
     if (entries.length === 0) {
       container.innerHTML = `
@@ -532,8 +520,11 @@
           <p>Nothing in your order yet.<br>Tap a dish on the menu to add it.</p>
         </div>
       `;
+      customerForm.style.display = "none";
       return;
     }
+
+    customerForm.style.display = "block";
 
     let total = 0;
     const rows = entries.map(([itemId, qty]) => {
@@ -574,15 +565,40 @@
     });
 
     const token = Math.floor(100 + Math.random() * 900);
+    const customerName = document.getElementById("customer-name").value.trim();
+    const customerPhone = document.getElementById("customer-phone").value.trim();
 
     try {
       await window.__addDoc(window.__collection(window.__db, "orders"), {
         token,
+        type: "takeaway",
         items: lines,
         total,
         status: "new",
+        billed: false,
+        customerName: customerName || null,
+        customerPhone: customerPhone || null,
         placedAt: window.__serverTimestamp()
       });
+
+      if (customerPhone) {
+        try {
+          await window.__setDoc(
+            window.__doc(window.__db, "customers", customerPhone),
+            {
+              name: customerName || null,
+              phone: customerPhone,
+              lastSeen: window.__serverTimestamp(),
+              orderCount: window.__increment(1),
+              totalSpent: window.__increment(total)
+            },
+            { merge: true }
+          );
+        } catch (custErr) {
+          console.error("Could not save customer record:", custErr);
+          // don't block the order over this
+        }
+      }
 
       renderConfirmation(token, lines, total);
       Object.keys(cart).forEach(k => delete cart[k]);
@@ -607,6 +623,8 @@
 
   function startNewOrder() {
     currentDetailId = null;
+    document.getElementById("customer-name").value = "";
+    document.getElementById("customer-phone").value = "";
     renderMenuList();
     showView("menu");
   }
@@ -639,7 +657,22 @@
   window.placeOrder = placeOrder;
   window.startNewOrder = startNewOrder;
 
-  renderMenuList();
+  // ---------- Live menu — loaded from Firestore, managed via menu-admin.html ----------
+  function startMenuListener() {
+    if (!window.__firebaseReady) { setTimeout(startMenuListener, 150); return; }
+
+    window.__onSnapshot(window.__doc(window.__db, "config", "categories"), (snap) => {
+      CATEGORIES = snap.exists() ? (snap.data().names || []) : [];
+      renderMenuList();
+    });
+
+    window.__onSnapshot(window.__collection(window.__db, "menu_items"), (snap) => {
+      MENU = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderMenuList();
+    });
+  }
+
+  startMenuListener();
   renderCart();
 </script>
 

@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hotel Mathar Bhai — KOT</title>
+<link rel="manifest" href="manifest-kot.json">
+<meta name="theme-color" content="#241A14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HMB KOT">
+<link rel="apple-touch-icon" href="icons/icon-kot-192.png">
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch(console.error);
+    });
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Karla:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -114,6 +127,27 @@
   .ticket__item { display: flex; justify-content: space-between; font-size: 0.95rem; line-height: 1.4; }
   .ticket__item-qty { font-family: var(--font-mono); font-weight: 700; color: var(--ember-dark); margin-right: 0.5rem; }
 
+  .ticket__type {
+    display: inline-block; font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 999px;
+    margin-bottom: 0.6rem;
+  }
+  .ticket__type--takeaway { background: rgba(227,168,59,0.18); color: #8a6512; }
+  .ticket__type--parcel { background: rgba(178,58,46,0.15); color: var(--ember-dark); }
+  .ticket__type--dinein { background: rgba(79,93,58,0.18); color: var(--curry); }
+
+  .ticket__table-info {
+    font-family: var(--font-body); font-weight: 700; font-size: 0.95rem; color: var(--ink);
+    margin: -0.2rem 0 0.7rem;
+  }
+  .ticket__table-info span { font-weight: 400; color: var(--clay); font-size: 0.82rem; }
+
+  .ticket__instructions {
+    background: rgba(227,168,59,0.12); border-left: 3px solid var(--saffron);
+    padding: 0.55rem 0.7rem; margin-bottom: 0.9rem; font-size: 0.85rem; color: var(--ink);
+  }
+  .ticket__instructions strong { display: block; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: #8a6512; margin-bottom: 0.15rem; }
+
   .ticket__total {
     display: flex; justify-content: space-between;
     font-family: var(--font-mono); font-weight: 700; font-size: 1rem;
@@ -218,15 +252,19 @@
 
   function renderBoard(orders) {
     const board = document.getElementById("board");
-    board.innerHTML = "";
 
-    if (orders.length === 0) {
+    // Once a dine-in table has been billed at POS, it's done — don't keep showing it on the board
+    const activeOrders = orders.filter(o => o.billed !== true);
+
+    if (activeOrders.length === 0) {
       board.innerHTML = `<div class="empty-state">No orders yet. New tickets will appear here automatically.</div>`;
       document.getElementById("order-count").textContent = "0 active orders";
       return;
     }
 
-    const sorted = [...orders].sort((a, b) => {
+    board.innerHTML = "";
+
+    const sorted = [...activeOrders].sort((a, b) => {
       if (a.status === b.status) return 0;
       return a.status === "done" ? 1 : -1;
     });
@@ -243,11 +281,25 @@
         ? order.placedAt.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
         : "just now";
 
+      const typeLabel = order.type === "parcel" ? "Parcel" : order.type === "dinein" ? "Dine-in" : "Take away";
+      const typeClass = order.type === "parcel" ? "ticket__type--parcel" : order.type === "dinein" ? "ticket__type--dinein" : "ticket__type--takeaway";
+
+      const tableInfo = order.type === "dinein"
+        ? `<div class="ticket__table-info">Table ${order.tableNumber} <span>— ${order.waiterName || "waiter not given"}</span></div>`
+        : "";
+
+      const instructions = order.instructions
+        ? `<div class="ticket__instructions"><strong>Note</strong>${order.instructions}</div>`
+        : "";
+
       ticket.innerHTML = `
+        <span class="ticket__type ${typeClass}">${typeLabel}</span>
         <div class="ticket__header">
           <span class="ticket__token">#${order.token}</span>
           <span class="ticket__time"><strong>${time}</strong>received</span>
         </div>
+        ${tableInfo}
+        ${instructions}
         <div class="ticket__items">${itemRows}</div>
         <div class="ticket__total"><span>Total</span><span>₹${order.total}</span></div>
         <button class="done-btn" ${order.status === "done" ? "disabled" : ""} onclick="markDone('${order.id}')">
@@ -257,7 +309,7 @@
       board.appendChild(ticket);
     });
 
-    const activeCount = orders.filter(o => o.status === "new").length;
+    const activeCount = activeOrders.filter(o => o.status === "new").length;
     document.getElementById("order-count").textContent = `${activeCount} active order${activeCount === 1 ? "" : "s"}`;
   }
 </script>
