@@ -1,0 +1,16 @@
+{
+  "name": "Hotel Mathar Bhai - Captain",
+  "short_name": "HMB Captain",
+  "description": "Table ordering app for waiters at Hotel Mathar Bhai",
+  "start_url": "captain.html",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#241A14",
+  "theme_color": "#241A14",
+  "icons": [
+    { "src": "icons/icon-captain-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-captain-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-captain-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
