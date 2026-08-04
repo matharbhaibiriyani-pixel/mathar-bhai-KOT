@@ -265,6 +265,8 @@
     background: transparent; color: var(--paper); font-weight: 700; cursor: pointer;
   }
   .payment-btn--active { border-color: var(--saffron); background: rgba(227,168,59,0.12); color: var(--saffron); }
+  .payment-btn:disabled { opacity: 0.5; cursor: default; }
+  .checkout-hint { text-align: center; font-family: var(--font-mono); font-size: 0.75rem; color: var(--clay); margin: 0 0 0.6rem; }
 
   .printer-status {
     font-family: var(--font-mono); font-size: 0.72rem; color: var(--clay);
@@ -384,8 +386,8 @@
     <div class="bill-total-row"><span>Total</span><span id="bill-total">₹0</span></div>
 
     <div class="payment-row">
-      <button class="payment-btn payment-btn--active" id="pay-cash">Cash</button>
-      <button class="payment-btn" id="pay-upi">UPI</button>
+      <button class="payment-btn payment-btn--active" id="pay-cash">💵 Cash</button>
+      <button class="payment-btn" id="pay-upi">📱 UPI</button>
     </div>
 
     <div class="customer-fields">
@@ -395,7 +397,7 @@
       <textarea id="order-instructions" class="customer-input" placeholder="Special instructions for the kitchen (optional) — e.g. no onions, extra spicy" style="margin-top: 0.5rem; min-height: 50px; resize: vertical; font-family: var(--font-body);"></textarea>
     </div>
 
-    <button class="primary-btn" id="checkout-btn">Generate &amp; Print Bill</button>
+    <p class="checkout-hint" id="checkout-hint">Tap Cash or UPI above to generate &amp; print the bill</p>
     <button class="secondary-btn" id="hold-bill-btn">Hold this bill</button>
     <button class="secondary-btn" id="clear-bill-btn">Clear bill</button>
   </div>
@@ -640,8 +642,8 @@
 
   document.getElementById("type-parcel").onclick = () => setOrderType("parcel");
   document.getElementById("type-dinein").onclick = () => setOrderType("dinein");
-  document.getElementById("pay-cash").onclick = () => setPaymentMethod("cash");
-  document.getElementById("pay-upi").onclick = () => setPaymentMethod("upi");
+  document.getElementById("pay-cash").onclick = () => generateBill("cash");
+  document.getElementById("pay-upi").onclick = () => generateBill("upi");
 
   // ---------- Hold Bill ----------
   function currentBillIsEmpty() {
@@ -1170,14 +1172,19 @@
   document.getElementById("customer-phone").addEventListener("blur", lookupLoyaltyPoints);
 
   // ---------- Checkout ----------
-  document.getElementById("checkout-btn").onclick = async () => {
+  async function generateBill(method) {
     const entries = Object.entries(bill).filter(([, qty]) => qty > 0);
     if (entries.length === 0 && customItems.length === 0) { showToast("Add at least one item first."); return; }
     if (!window.__firebaseReady) { showToast("Connection not ready — try again in a moment."); return; }
 
-    const btn = document.getElementById("checkout-btn");
-    btn.disabled = true;
-    btn.textContent = "Processing...";
+    setPaymentMethod(method);
+
+    const payCashBtn = document.getElementById("pay-cash");
+    const payUpiBtn = document.getElementById("pay-upi");
+    payCashBtn.disabled = true;
+    payUpiBtn.disabled = true;
+    const hint = document.getElementById("checkout-hint");
+    hint.textContent = "Saving bill…";
 
     let total = 0;
     const menuLines = entries.map(([itemId, qty]) => {
@@ -1207,8 +1214,9 @@
         } catch (custErr) {
           if (redeemedThisBill) {
             showToast("Redemption failed: " + custErr.message);
-            btn.disabled = false;
-            btn.textContent = "Generate & Print Bill";
+            payCashBtn.disabled = false;
+            payUpiBtn.disabled = false;
+            hint.textContent = "Tap Cash or UPI above to generate & print the bill";
             return; // stop — do not save the bill
           }
           console.error("Customer record failed (bill still saved):", custErr);
@@ -1298,10 +1306,11 @@
       console.error(err);
       showToast("Could not save this bill — check your connection and try again.");
     } finally {
-      btn.disabled = false;
-      btn.textContent = "Generate & Print Bill";
+      payCashBtn.disabled = false;
+      payUpiBtn.disabled = false;
+      hint.textContent = "Tap Cash or UPI above to generate & print the bill";
     }
-  };
+  }
 
   window.setQty = setQty;
   window.removeCustomItem = removeCustomItem;
