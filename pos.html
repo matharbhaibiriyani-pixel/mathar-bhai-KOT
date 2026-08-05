@@ -47,18 +47,7 @@
   .pill-btn:hover { border-color: var(--saffron); color: var(--saffron); }
   .pill-btn--active { border-color: var(--saffron); color: var(--saffron); background: rgba(227,168,59,0.08); }
 
-  .layout { display: grid; grid-template-columns: 1fr 260px 380px; height: calc(100vh - 66px); overflow: hidden; }
-
-  /* Tablet tier (roughly 641px–1150px): keep the multi-panel layout used on
-     desktop — just drop to two columns with the custom-item panel moved to
-     the top, since 3 fixed-width columns get too cramped below ~1150px.
-     This is what real tablets (iPad, Android tablets) land in, in either
-     orientation, so they get the same fixed side-panel experience as a
-     laptop — not the stacked phone layout below. */
-  @media (max-width: 1150px) {
-    .layout { grid-template-columns: 1fr 380px; }
-    .custom-panel { grid-column: 1 / -1; height: auto; border-left: none; border-top: 1px solid var(--clay); }
-  }
+  .layout { display: grid; grid-template-columns: 1fr 380px; height: calc(100vh - 66px); overflow: hidden; }
 
   /* Phone tier only — genuinely narrow screens. Real tablets are all wider
      than this, so they never hit this collapse. */
@@ -67,7 +56,6 @@
     .topbar__right { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
     html, body { height: auto; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .layout { grid-template-columns: 1fr; height: auto; overflow: visible; padding-bottom: 76px; }
-    .custom-panel { grid-column: auto; height: auto; overflow-y: visible; }
     .menu-panel { height: auto; overflow-y: visible; padding-bottom: 0.5rem; }
     .bill-panel {
       height: auto; overflow: visible; border-left: none; border-top: 3px solid var(--ember);
@@ -91,23 +79,6 @@
   }
   .mobile-checkout-bar:active { background: var(--ember-dark); }
 
-  .custom-panel {
-    background: #201710; border-left: 1px solid var(--clay);
-    padding: 1.25rem; height: 100%; overflow-y: auto;
-  }
-  .custom-panel__title { font-family: var(--font-display); font-weight: 900; font-size: 1.1rem; margin: 0 0 0.3rem; }
-  .custom-panel__hint { font-family: var(--font-mono); font-size: 0.72rem; color: var(--clay); margin: 0 0 1.2rem; line-height: 1.5; }
-
-  .custom-panel .modal-field { margin-bottom: 0.9rem; }
-  .custom-panel .modal-field label { color: var(--cream-dim); }
-
-  .custom-panel__add-btn {
-    width: 100%; padding: 0.75rem; border-radius: 10px; border: none;
-    background: var(--saffron); color: var(--ink); font-family: var(--font-body);
-    font-weight: 700; font-size: 0.92rem; cursor: pointer; margin-top: 0.3rem;
-  }
-  .custom-panel__add-btn:hover { background: #eab84f; }
-
   .menu-panel { padding: 1.25rem; overflow-y: auto; height: 100%; }
   .order-type-row { display: flex; gap: 0.6rem; margin-bottom: 1.25rem; }
   .order-type-btn {
@@ -126,13 +97,6 @@
   }
   #table-lookup-status { font-family: var(--font-mono); font-size: 0.78rem; color: var(--saffron); }
 
-  .custom-item-btn {
-    flex-shrink: 0; padding: 0.8rem 1.1rem; border-radius: 12px; border: 2px dashed var(--saffron);
-    background: transparent; color: var(--saffron); font-family: var(--font-body); font-weight: 700;
-    font-size: 0.9rem; cursor: pointer; white-space: nowrap;
-  }
-  .custom-item-btn:hover { background: rgba(227,168,59,0.1); }
-
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.55);
     display: none; align-items: center; justify-content: center; z-index: 80; padding: 1.5rem;
@@ -150,6 +114,11 @@
     background: #fff; color: var(--ink); font-family: var(--font-body); font-size: 0.95rem;
   }
   .modal-field input:focus { outline: none; border-color: var(--ember); }
+  .modal-field select {
+    width: 100%; padding: 0.65rem 0.8rem; border-radius: 8px; border: 1.5px solid #DCCBA8;
+    background: #fff; color: var(--ink); font-family: var(--font-body); font-size: 0.95rem;
+  }
+  .modal-field select:focus { outline: none; border-color: var(--ember); }
   .modal-actions { display: flex; gap: 0.6rem; margin-top: 1.3rem; }
   .modal-actions button { flex: 1; padding: 0.75rem; border-radius: 10px; font-weight: 700; cursor: pointer; font-family: var(--font-body); }
   .modal-cancel-btn { background: transparent; border: 1.5px solid var(--clay); color: var(--ink); }
@@ -198,9 +167,16 @@
   .item-tile {
     background: var(--paper); color: var(--ink); border-radius: 12px; padding: 0.8rem 0.9rem;
     display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+    cursor: pointer; user-select: none; transition: transform 0.08s ease;
   }
+  .item-tile:active { transform: scale(0.97); background: var(--paper-dim); }
   .item-tile__name { font-family: 'Noto Sans Tamil', var(--font-body); font-weight: 700; font-size: 0.92rem; line-height: 1.25; }
   .item-tile__price { font-family: var(--font-mono); font-size: 0.78rem; color: var(--clay); }
+  .item-tile__badge {
+    flex-shrink: 0; min-width: 26px; height: 26px; border-radius: 999px;
+    background: var(--ember); color: var(--paper); font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center; padding: 0 0.4rem;
+  }
 
   .stepper { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
   .stepper-btn {
@@ -227,9 +203,9 @@
     display: flex; justify-content: space-between; align-items: center;
     padding: 0.5rem 0; border-bottom: 1px dashed var(--clay); font-size: 0.88rem;
   }
-  .bill-line__name { font-family: 'Noto Sans Tamil', var(--font-body); flex: 1; padding-right: 0.5rem; }
-  .bill-line__qty { font-family: var(--font-mono); color: var(--saffron); margin-right: 0.4rem; }
-  .bill-line__remove { background: none; border: none; color: var(--clay); cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem; }
+  .bill-line__name { font-family: 'Noto Sans Tamil', var(--font-body); flex: 1; padding-right: 0.5rem; font-size: 0.92rem; }
+  .bill-line__stepper { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; margin: 0 0.6rem; }
+  .bill-line__price { font-family: var(--font-mono); font-size: 0.85rem; min-width: 4ch; text-align: right; flex-shrink: 0; }
 
   .bill-empty { text-align: center; color: var(--clay); font-family: var(--font-mono); font-size: 0.85rem; padding: 2rem 0; }
 
@@ -287,8 +263,9 @@
   .secondary-btn {
     width: 100%; padding: 0.7rem; border: 1px solid var(--clay); border-radius: 12px;
     background: transparent; color: var(--paper); font-family: var(--font-body); font-size: 0.85rem; cursor: pointer;
-    flex-shrink: 0;
+    flex-shrink: 0; margin-bottom: 0.6rem;
   }
+  .secondary-btn:last-child { margin-bottom: 0; }
   .secondary-btn:hover { border-color: var(--saffron); color: var(--saffron); }
 
   .toast {
@@ -349,6 +326,7 @@
     <div class="order-type-row">
       <button class="order-type-btn order-type-btn--active" id="type-parcel">📦 Parcel</button>
       <button class="order-type-btn" id="type-dinein">🍽 Dine-in</button>
+      <button class="pill-btn" id="open-custom-item-btn">+ Custom Item</button>
     </div>
     <div class="table-lookup-row" id="table-lookup-row" style="display:none;">
       <input type="text" id="pos-table-number" placeholder="Table number" inputmode="numeric">
@@ -360,24 +338,6 @@
       No menu items yet. Ask a manager to add dishes via <strong style="color:var(--saffron);">Dashboard → Manage Menu</strong>.
     </div>
     <div id="menu-items"></div>
-  </div>
-
-  <div class="custom-panel">
-    <p class="custom-panel__title">Custom Item</p>
-    <p class="custom-panel__hint">For anything not on the menu — specials, one-off charges, etc.</p>
-    <div class="modal-field">
-      <label for="custom-item-name">Item name</label>
-      <input type="text" id="custom-item-name" placeholder="e.g. Special Combo">
-    </div>
-    <div class="modal-field">
-      <label for="custom-item-price">Price (₹)</label>
-      <input type="number" id="custom-item-price" min="0" step="1" placeholder="0">
-    </div>
-    <div class="modal-field">
-      <label for="custom-item-qty">Quantity</label>
-      <input type="number" id="custom-item-qty" min="1" step="1" value="1">
-    </div>
-    <button class="custom-panel__add-btn" id="confirm-custom-item-btn">+ Add to bill</button>
   </div>
 
   <div class="bill-panel" id="bill-panel">
@@ -394,7 +354,6 @@
       <input type="text" id="customer-name" class="customer-input" placeholder="Customer name (optional)">
       <input type="tel" id="customer-phone" class="customer-input" placeholder="Phone number (optional)" style="margin-top: 0.5rem;">
       <div id="loyalty-status" style="display:none;"></div>
-      <textarea id="order-instructions" class="customer-input" placeholder="Special instructions for the kitchen (optional) — e.g. no onions, extra spicy" style="margin-top: 0.5rem; min-height: 50px; resize: vertical; font-family: var(--font-body);"></textarea>
     </div>
 
     <p class="checkout-hint" id="checkout-hint">Tap Cash or UPI above to generate &amp; print the bill</p>
@@ -425,6 +384,32 @@
     <div id="held-bills-list"></div>
     <div class="modal-actions">
       <button class="modal-cancel-btn" id="close-held-bills-btn" style="flex:1;">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="custom-item-modal">
+  <div class="modal-card">
+    <p class="modal-card__title">Add Custom Item</p>
+    <div class="modal-field">
+      <label for="custom-item-name">Item</label>
+      <select id="custom-item-name">
+        <option value="beef">Beef</option>
+        <option value="chicken">Chicken</option>
+        <option value="egg">Egg</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label for="custom-item-price">Price (₹)</label>
+      <input type="number" id="custom-item-price" min="0" step="1" placeholder="0">
+    </div>
+    <div class="modal-field">
+      <label for="custom-item-qty">Quantity</label>
+      <input type="number" id="custom-item-qty" min="1" step="1" value="1">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel-btn" id="cancel-custom-item-btn">Cancel</button>
+      <button class="modal-add-btn" id="confirm-custom-item-btn">Add to bill</button>
     </div>
   </div>
 </div>
@@ -533,26 +518,9 @@
         <div class="item-tile__name">${item.name}</div>
         <div class="item-tile__price">${formatPrice(item.price)}</div>
       </div>
+      ${qty > 0 ? `<span class="item-tile__badge">${qty}</span>` : ""}
     `;
-    if (qty === 0) {
-      const btn = document.createElement("button");
-      btn.className = "add-tile-btn";
-      btn.textContent = "+";
-      btn.onclick = () => setQty(item.id, 1);
-      tile.appendChild(btn);
-    } else {
-      const stepper = document.createElement("div");
-      stepper.className = "stepper";
-      stepper.innerHTML = `
-        <button class="stepper-btn" data-d="-1">&minus;</button>
-        <span class="stepper-qty">${qty}</span>
-        <button class="stepper-btn" data-d="1">+</button>
-      `;
-      stepper.querySelectorAll(".stepper-btn").forEach(b => {
-        b.onclick = () => setQty(item.id, qty + parseInt(b.dataset.d));
-      });
-      tile.appendChild(stepper);
-    }
+    tile.onclick = () => setQty(item.id, qty + 1);
   }
 
   function setQty(itemId, qty) {
@@ -583,9 +551,13 @@
       itemCount += qty;
       return `
         <div class="bill-line">
-          <span class="bill-line__name"><span class="bill-line__qty">${qty}×</span>${item.name}</span>
-          <span>${formatPrice(lineTotal)}</span>
-          <button class="bill-line__remove" onclick="setQty('${itemId}', 0)">✕</button>
+          <span class="bill-line__name">${item.name}</span>
+          <div class="bill-line__stepper">
+            <button class="stepper-btn" onclick="setQty('${itemId}', ${qty - 1})">&minus;</button>
+            <span class="stepper-qty">${qty}</span>
+            <button class="stepper-btn" onclick="setQty('${itemId}', ${qty + 1})">+</button>
+          </div>
+          <span class="bill-line__price">${formatPrice(lineTotal)}</span>
         </div>
       `;
     }).join("");
@@ -596,9 +568,13 @@
       itemCount += ci.qty;
       return `
         <div class="bill-line">
-          <span class="bill-line__name"><span class="bill-line__qty">${ci.qty}×</span>${ci.name} <em style="opacity:0.6; font-style:italic;">(custom)</em></span>
-          <span>${formatPrice(lineTotal)}</span>
-          <button class="bill-line__remove" onclick="removeCustomItem(${idx})">✕</button>
+          <span class="bill-line__name">${ci.name} <em style="opacity:0.6; font-style:italic;">(custom)</em></span>
+          <div class="bill-line__stepper">
+            <button class="stepper-btn" onclick="setCustomItemQty(${idx}, ${ci.qty - 1})">&minus;</button>
+            <span class="stepper-qty">${ci.qty}</span>
+            <button class="stepper-btn" onclick="setCustomItemQty(${idx}, ${ci.qty + 1})">+</button>
+          </div>
+          <span class="bill-line__price">${formatPrice(lineTotal)}</span>
         </div>
       `;
     }).join("");
@@ -624,6 +600,12 @@
       redeemedThisBill = false;
       renderLoyaltyStatus();
     }
+    renderBill();
+  }
+
+  function setCustomItemQty(idx, qty) {
+    if (qty <= 0) { removeCustomItem(idx); return; }
+    if (customItems[idx]) customItems[idx].qty = qty;
     renderBill();
   }
 
@@ -656,7 +638,6 @@
     customItems.length = 0;
     document.getElementById("customer-name").value = "";
     document.getElementById("customer-phone").value = "";
-    document.getElementById("order-instructions").value = "";
     document.getElementById("pos-table-number").value = "";
     document.getElementById("table-lookup-status").textContent = "";
     sourceTableOrderId = null;
@@ -733,7 +714,6 @@
       customItems: customItems.map(ci => ({ ...ci })),
       customerName: name,
       customerPhone: document.getElementById("customer-phone").value.trim(),
-      instructions: document.getElementById("order-instructions").value.trim(),
       tableNumber: document.getElementById("pos-table-number").value.trim(),
       sourceTableOrderId
     };
@@ -815,33 +795,38 @@
   window.resumeHeldBill = resumeHeldBill;
   window.deleteHeldBill = deleteHeldBill;
 
-  document.getElementById("clear-bill-btn").onclick = () => {
-    resetCurrentBill();
+  // ---------- Custom item modal ----------
+  const QUICK_ITEM_MAP = {
+    beef: { name: "Beef", category: "பீஃப்" },
+    chicken: { name: "Chicken", category: "சிக்கன்" },
+    egg: { name: "Egg", category: "முட்டை" }
   };
 
-  // ---------- Custom item panel ----------
+  document.getElementById("open-custom-item-btn").onclick = () => {
+    document.getElementById("custom-item-name").value = "beef";
+    document.getElementById("custom-item-price").value = "";
+    document.getElementById("custom-item-qty").value = "1";
+    document.getElementById("custom-item-modal").classList.add("visible");
+  };
+  document.getElementById("cancel-custom-item-btn").onclick = () => {
+    document.getElementById("custom-item-modal").classList.remove("visible");
+  };
   document.getElementById("confirm-custom-item-btn").onclick = () => {
-    const nameField = document.getElementById("custom-item-name");
-    const priceField = document.getElementById("custom-item-price");
-    const qtyField = document.getElementById("custom-item-qty");
+    const selection = QUICK_ITEM_MAP[document.getElementById("custom-item-name").value];
+    const price = parseFloat(document.getElementById("custom-item-price").value);
+    const qty = parseInt(document.getElementById("custom-item-qty").value);
 
-    const name = nameField.value.trim();
-    const price = parseFloat(priceField.value);
-    const qty = parseInt(qtyField.value);
-
-    if (!name) { showToast("Enter an item name."); return; }
     if (!price || price <= 0) { showToast("Enter a valid price."); return; }
     if (!qty || qty <= 0) { showToast("Enter a valid quantity."); return; }
 
-    customItems.push({ id: "custom-" + Date.now(), name, price, qty });
+    customItems.push({ id: "custom-" + Date.now(), name: selection.name, category: selection.category, price, qty });
+    document.getElementById("custom-item-modal").classList.remove("visible");
     renderBill();
-    showToast(`Added "${name}" to the bill.`, true);
+    showToast(`Added ${selection.name} to the bill.`, true);
+  };
 
-    // reset the panel for the next entry
-    nameField.value = "";
-    priceField.value = "";
-    qtyField.value = "1";
-    nameField.focus();
+  document.getElementById("clear-bill-btn").onclick = () => {
+    resetCurrentBill();
   };
 
   function showToast(msg, success) {
@@ -1196,7 +1181,7 @@
     const customLines = customItems.map(ci => {
       const lineTotal = ci.price * ci.qty;
       total += lineTotal;
-      return { name: ci.name, category: ci.isRedemption ? "Redemption" : "Custom Item", qty: ci.qty, price: ci.price, lineTotal };
+      return { name: ci.name, category: ci.isRedemption ? "Redemption" : (ci.category || "Custom Item"), qty: ci.qty, price: ci.price, lineTotal };
     });
     const lines = [...menuLines, ...customLines];
 
@@ -1238,8 +1223,6 @@
         createdAt: window.__serverTimestamp()
       });
 
-      const instructions = document.getElementById("order-instructions").value.trim();
-
       // Parcel orders also go to the KOT board — same number as the bill, so staff see one consistent number
       if (orderType === "parcel") {
         await window.__addDoc(window.__collection(window.__db, "orders"), {
@@ -1248,7 +1231,6 @@
           billed: false,
           items: lines,
           total,
-          instructions: instructions || null,
           status: "new",
           placedAt: window.__serverTimestamp()
         });
@@ -1293,7 +1275,6 @@
       customItems.length = 0;
       document.getElementById("customer-name").value = "";
       document.getElementById("customer-phone").value = "";
-      document.getElementById("order-instructions").value = "";
       document.getElementById("pos-table-number").value = "";
       document.getElementById("table-lookup-status").textContent = "";
       sourceTableOrderId = null;
@@ -1314,6 +1295,7 @@
 
   window.setQty = setQty;
   window.removeCustomItem = removeCustomItem;
+  window.setCustomItemQty = setCustomItemQty;
 
   // ---------- Live menu — loaded from Firestore, managed via menu-admin.html ----------
   let menuLoaded = false;
